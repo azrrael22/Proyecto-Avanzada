@@ -513,21 +513,6 @@ SELECT 2, id_permiso FROM permisos WHERE nombre_permiso IN (
 INSERT INTO roles_permisos (id_rol, id_permiso)
 SELECT 3, id_permiso FROM permisos;
 
--- ================================================
--- DATOS DE PRUEBA
--- ================================================
-
-INSERT INTO usuarios (nombre, email, contrasenia_hash, telefono, fecha_nacimiento, id_rol) VALUES
-                                                                                              ('Juan Pérez', 'juan.perez@email.com', '$2a$10$hash_ejemplo_usuario', '+57300123456', '1990-05-15', 1),
-                                                                                              ('María García', 'maria.garcia@email.com', '$2a$10$hash_ejemplo_anfitrion', '+57310987654', '1985-08-22', 2),
-                                                                                              ('Carlos Admin', 'admin@alojamientos.com', '$2a$10$hash_ejemplo_admin', '+57320456789', '1980-12-10', 3);
-
-INSERT INTO alojamientos (id_anfitrion, titulo, descripcion, ciudad, direccion_completa, precio_por_noche, capacidad_maxima, tipo, servicios) VALUES
-    (2, 'Casa Campestre en La Calera', 'Hermosa casa con vista a los cerros orientales', 'La Calera', 'Vereda Alto del Aguila, Km 2', 150000.00, 6, 'CASA',
-     '["WiFi", "Piscina", "Parqueadero", "Asador", "Chimenea"]');
-
-INSERT INTO imagenes_alojamiento (id_alojamiento, url_imagen, es_principal, orden) VALUES
-    (1, '/uploads/alojamientos/casa_calera_principal.jpg', TRUE, 1);
 
 -- ================================================
 -- VISTAS ÚTILES
