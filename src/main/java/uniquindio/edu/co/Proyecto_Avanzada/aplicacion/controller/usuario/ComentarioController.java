@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -38,26 +39,30 @@ public class ComentarioController {
             @Parameter(description = "Comentario opcional (máximo 500 caracteres)", example = "Excelente lugar, muy recomendado")
             @RequestParam(required = false) String comentario
     ) {
-        return ResponseEntity.status(201).body(Map.of(
-                "comentario", Map.of(
-                        "id", 1,
-                        "reserva", Map.of(
-                                "id", reservaId,
-                                "alojamiento", "Casa Campestre La Calera",
-                                "fechaEstadia", "2024-01-15 a 2024-01-17"
-                        ),
-                        "calificacion", calificacion,
-                        "comentario", comentario != null ? comentario : "",
-                        "fecha", java.time.LocalDateTime.now().toString(),
-                        "usuario", "Juan Pérez" // En producción viene del token JWT
-                ),
-                "message", "¡Gracias por tu comentario!",
-                "impacto", Map.of(
-                        "nuevoPromedio", 4.3,
-                        "totalComentarios", 8,
-                        "ayudasOtrosViajeros", true
-                )
-        ));
+        Map<String, Object> reserva = new HashMap<>();
+        reserva.put("id", reservaId);
+        reserva.put("alojamiento", "Casa Campestre La Calera");
+        reserva.put("fechaEstadia", "2024-01-15 a 2024-01-17");
+
+        Map<String, Object> comentarioData = new HashMap<>();
+        comentarioData.put("id", 1);
+        comentarioData.put("reserva", reserva);
+        comentarioData.put("calificacion", calificacion);
+        comentarioData.put("comentario", comentario != null ? comentario : "");
+        comentarioData.put("fecha", java.time.LocalDateTime.now().toString());
+        comentarioData.put("usuario", "Juan Pérez");
+
+        Map<String, Object> impacto = new HashMap<>();
+        impacto.put("nuevoPromedio", 4.3);
+        impacto.put("totalComentarios", 8);
+        impacto.put("ayudasOtrosViajeros", true);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("comentario", comentarioData);
+        response.put("message", "¡Gracias por tu comentario!");
+        response.put("impacto", impacto);
+
+        return ResponseEntity.status(201).body(response);
     }
 
     @GetMapping("/mis-comentarios")
@@ -74,49 +79,54 @@ public class ComentarioController {
             @Parameter(description = "Tamaño de página", example = "10")
             @RequestParam(defaultValue = "10") int size
     ) {
-        return ResponseEntity.ok(Map.of(
-                "comentarios", List.of(
-                        Map.of(
-                                "id", 1,
-                                "alojamiento", Map.of(
-                                        "id", 1,
-                                        "titulo", "Casa Campestre La Calera",
-                                        "imagen", "casa1.jpg"
-                                ),
-                                "calificacion", 5,
-                                "comentario", "Excelente lugar, muy recomendado para familias",
-                                "fecha", "2024-01-18T10:30:00",
-                                "respuestaAnfitrion", Map.of(
-                                        "respuesta", "¡Gracias Juan! Fue un placer tenerte como huésped",
-                                        "fecha", "2024-01-18T15:45:00"
-                                )
-                        ),
-                        Map.of(
-                                "id", 2,
-                                "alojamiento", Map.of(
-                                        "id", 2,
-                                        "titulo", "Apartamento Moderno Centro",
-                                        "imagen", "apto1.jpg"
-                                ),
-                                "calificacion", 4,
-                                "comentario", "Muy cómodo y bien ubicado, recomendado",
-                                "fecha", "2023-12-23T14:20:00",
-                                "respuestaAnfitrion", null
-                        )
-                ),
-                "resumen", Map.of(
-                        "totalComentarios", 5,
-                        "calificacionPromedio", 4.4,
-                        "conRespuesta", 3,
-                        "sinRespuesta", 2
-                ),
-                "paginacion", Map.of(
-                        "page", page,
-                        "size", size,
-                        "totalElementos", 5,
-                        "totalPaginas", 1
-                )
-        ));
+        Map<String, Object> alojamiento1 = new HashMap<>();
+        alojamiento1.put("id", 1);
+        alojamiento1.put("titulo", "Casa Campestre La Calera");
+        alojamiento1.put("imagen", "casa1.jpg");
+
+        Map<String, Object> respuestaAnfitrion1 = new HashMap<>();
+        respuestaAnfitrion1.put("respuesta", "¡Gracias Juan! Fue un placer tenerte como huésped");
+        respuestaAnfitrion1.put("fecha", "2024-01-18T15:45:00");
+
+        Map<String, Object> comentario1 = new HashMap<>();
+        comentario1.put("id", 1);
+        comentario1.put("alojamiento", alojamiento1);
+        comentario1.put("calificacion", 5);
+        comentario1.put("comentario", "Excelente lugar, muy recomendado para familias");
+        comentario1.put("fecha", "2024-01-18T10:30:00");
+        comentario1.put("respuestaAnfitrion", respuestaAnfitrion1);
+
+        Map<String, Object> alojamiento2 = new HashMap<>();
+        alojamiento2.put("id", 2);
+        alojamiento2.put("titulo", "Apartamento Moderno Centro");
+        alojamiento2.put("imagen", "apto1.jpg");
+
+        Map<String, Object> comentario2 = new HashMap<>();
+        comentario2.put("id", 2);
+        comentario2.put("alojamiento", alojamiento2);
+        comentario2.put("calificacion", 4);
+        comentario2.put("comentario", "Muy cómodo y bien ubicado, recomendado");
+        comentario2.put("fecha", "2023-12-23T14:20:00");
+        comentario2.put("respuestaAnfitrion", null);
+
+        Map<String, Object> resumen = new HashMap<>();
+        resumen.put("totalComentarios", 5);
+        resumen.put("calificacionPromedio", 4.4);
+        resumen.put("conRespuesta", 3);
+        resumen.put("sinRespuesta", 2);
+
+        Map<String, Object> paginacion = new HashMap<>();
+        paginacion.put("page", page);
+        paginacion.put("size", size);
+        paginacion.put("totalElementos", 5);
+        paginacion.put("totalPaginas", 1);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("comentarios", List.of(comentario1, comentario2));
+        response.put("resumen", resumen);
+        response.put("paginacion", paginacion);
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/alojamiento/{alojamientoId}")
@@ -142,101 +152,90 @@ public class ComentarioController {
             @Parameter(description = "Tamaño de página", example = "5")
             @RequestParam(defaultValue = "5") int size
     ) {
-        return ResponseEntity.ok(Map.of(
-                "alojamiento", Map.of(
-                        "id", alojamientoId,
-                        "titulo", "Casa Campestre La Calera"
-                ),
-                "estadisticas", Map.of(
-                        "calificacionPromedio", 4.3,
-                        "totalComentarios", 12,
-                        "distribucion", Map.of(
-                                "5estrellas", 6,
-                                "4estrellas", 4,
-                                "3estrellas", 2,
-                                "2estrellas", 0,
-                                "1estrella", 0
-                        )
-                ),
-                "comentarios", List.of(
-                        Map.of(
-                                "id", 1,
-                                "usuario", Map.of(
-                                        "nombre", "María García",
-                                        "iniciales", "MG",
-                                        "fechaRegistro", "2023-05-10"
-                                ),
-                                "calificacion", 5,
-                                "comentario", "Excelente lugar para descansar en familia. La casa es muy cómoda y tiene una vista espectacular.",
-                                "fecha", "2024-01-15T16:30:00",
-                                "respuestaAnfitrion", Map.of(
-                                        "anfitrion", "Ana López",
-                                        "respuesta", "¡Muchas gracias María! Fue un placer tenerte como huésped. ¡Vuelve pronto!",
-                                        "fecha", "2024-01-16T09:15:00"
-                                ),
-                                "util", Map.of(
-                                        "votosPositivos", 8,
-                                        "votosNegativos", 1
-                                )
-                        ),
-                        Map.of(
-                                "id", 2,
-                                "usuario", Map.of(
-                                        "nombre", "Carlos Mendoza",
-                                        "iniciales", "CM",
-                                        "fechaRegistro", "2023-08-22"
-                                ),
-                                "calificacion", 4,
-                                "comentario", "Muy buena ubicación y limpieza. Solo el WiFi podría mejorar un poco.",
-                                "fecha", "2024-01-10T11:45:00",
-                                "respuestaAnfitrion", Map.of(
-                                        "anfitrion", "Ana López",
-                                        "respuesta", "Gracias por el feedback Carlos, ya estamos mejorando la conexión WiFi.",
-                                        "fecha", "2024-01-10T18:20:00"
-                                ),
-                                "util", Map.of(
-                                        "votosPositivos", 5,
-                                        "votosNegativos", 0
-                                )
-                        )
-                ),
-                "filtros", Map.of(
-                        "ordenarPor", ordenarPor,
-                        "direccion", direccion
-                ),
-                "paginacion", Map.of(
-                        "page", page,
-                        "size", size,
-                        "totalElementos", 12,
-                        "totalPaginas", 3
-                )
-        ));
+        Map<String, Object> alojamiento = new HashMap<>();
+        alojamiento.put("id", alojamientoId);
+        alojamiento.put("titulo", "Casa Campestre La Calera");
+
+        Map<String, Object> distribucion = new HashMap<>();
+        distribucion.put("5estrellas", 6);
+        distribucion.put("4estrellas", 4);
+        distribucion.put("3estrellas", 2);
+        distribucion.put("2estrellas", 0);
+        distribucion.put("1estrella", 0);
+
+        Map<String, Object> estadisticas = new HashMap<>();
+        estadisticas.put("calificacionPromedio", 4.3);
+        estadisticas.put("totalComentarios", 12);
+        estadisticas.put("distribucion", distribucion);
+
+        Map<String, Object> usuario1 = new HashMap<>();
+        usuario1.put("nombre", "María García");
+        usuario1.put("iniciales", "MG");
+        usuario1.put("fechaRegistro", "2023-05-10");
+
+        Map<String, Object> respuestaAnfitrion1 = new HashMap<>();
+        respuestaAnfitrion1.put("anfitrion", "Ana López");
+        respuestaAnfitrion1.put("respuesta", "¡Muchas gracias María! Fue un placer tenerte como huésped. ¡Vuelve pronto!");
+        respuestaAnfitrion1.put("fecha", "2024-01-16T09:15:00");
+
+        Map<String, Object> util1 = new HashMap<>();
+        util1.put("votosPositivos", 8);
+        util1.put("votosNegativos", 1);
+
+        Map<String, Object> comentario1 = new HashMap<>();
+        comentario1.put("id", 1);
+        comentario1.put("usuario", usuario1);
+        comentario1.put("calificacion", 5);
+        comentario1.put("comentario", "Excelente lugar para descansar en familia. La casa es muy cómoda y tiene una vista espectacular.");
+        comentario1.put("fecha", "2024-01-15T16:30:00");
+        comentario1.put("respuestaAnfitrion", respuestaAnfitrion1);
+        comentario1.put("util", util1);
+
+        Map<String, Object> filtros = new HashMap<>();
+        filtros.put("ordenarPor", ordenarPor);
+        filtros.put("direccion", direccion);
+
+        Map<String, Object> paginacion = new HashMap<>();
+        paginacion.put("page", page);
+        paginacion.put("size", size);
+        paginacion.put("totalElementos", 12);
+        paginacion.put("totalPaginas", 3);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("alojamiento", alojamiento);
+        response.put("estadisticas", estadisticas);
+        response.put("comentarios", List.of(comentario1));
+        response.put("filtros", filtros);
+        response.put("paginacion", paginacion);
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/pendientes")
     @Operation(summary = "Ver reservas pendientes de comentar",
             description = "Lista de reservas completadas que aún no tienen comentario")
     public ResponseEntity<Map<String, Object>> reservasPendientesComentario() {
-        return ResponseEntity.ok(Map.of(
-                "reservasPendientes", List.of(
-                        Map.of(
-                                "reservaId", 5,
-                                "alojamiento", Map.of(
-                                        "id", 3,
-                                        "titulo", "Finca en Guatapé",
-                                        "imagen", "finca1.jpg"
-                                ),
-                                "fechaCheckOut", "2024-01-20",
-                                "diasTranscurridos", 5,
-                                "puedeComentary", true
-                        )
-                ),
-                "recordatorio", "¡Comparte tu experiencia para ayudar a otros viajeros!",
-                "beneficios", List.of(
-                        "Ayudas a otros viajeros a elegir",
-                        "Contribuyes a la comunidad",
-                        "Los anfitriones mejoran sus servicios"
-                )
+        Map<String, Object> alojamiento = new HashMap<>();
+        alojamiento.put("id", 3);
+        alojamiento.put("titulo", "Finca en Guatapé");
+        alojamiento.put("imagen", "finca1.jpg");
+
+        Map<String, Object> reservaPendiente = new HashMap<>();
+        reservaPendiente.put("reservaId", 5);
+        reservaPendiente.put("alojamiento", alojamiento);
+        reservaPendiente.put("fechaCheckOut", "2024-01-20");
+        reservaPendiente.put("diasTranscurridos", 5);
+        reservaPendiente.put("puedeComentary", true);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("reservasPendientes", List.of(reservaPendiente));
+        response.put("recordatorio", "¡Comparte tu experiencia para ayudar a otros viajeros!");
+        response.put("beneficios", List.of(
+                "Ayudas a otros viajeros a elegir",
+                "Contribuyes a la comunidad",
+                "Los anfitriones mejoran sus servicios"
         ));
+
+        return ResponseEntity.ok(response);
     }
 }

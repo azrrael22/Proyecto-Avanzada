@@ -20,9 +20,8 @@ import org.springframework.context.annotation.Configuration;
                         "Permite a usuarios buscar y reservar alojamientos, a anfitriones gestionar sus propiedades, " +
                         "y a administradores supervisar el sistema.",
                 contact = @Contact(
-                        name = "Equipo de Desarrollo",
-                        email = "dev@alojamientos.com",
-                        url = "https://github.com/tu-usuario/Proyecto-Avanzada"
+                        name = "Adriaann Mauricio Rodriguez Rubiano - Juan Sebastian Sachez Alvarez",
+                        email = "adriaannm.rodriguezr@uqvirtual.edu.co"
                 ),
                 license = @License(
                         name = "MIT License",
@@ -33,14 +32,6 @@ import org.springframework.context.annotation.Configuration;
                 @Server(
                         url = "http://localhost:8080",
                         description = "Servidor de Desarrollo"
-                ),
-                @Server(
-                        url = "https://api-test.alojamientos.com",
-                        description = "Servidor de Pruebas"
-                ),
-                @Server(
-                        url = "https://api.alojamientos.com",
-                        description = "Servidor de Producción"
                 )
         }
 )

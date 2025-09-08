@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -38,17 +39,19 @@ public class AuthController {
             @Parameter(description = "Fecha de nacimiento en formato YYYY-MM-DD", example = "1990-05-15")
             @RequestParam(required = false) String fechaNacimiento
     ) {
-        return ResponseEntity.status(201).body(Map.of(
-                "message", "Usuario registrado exitosamente",
-                "usuario", Map.of(
-                        "id", 1,
-                        "nombre", nombre,
-                        "email", email,
-                        "rol", "USUARIO",
-                        "estado", "ACTIVO",
-                        "fechaRegistro", java.time.LocalDateTime.now().toString()
-                )
-        ));
+        Map<String, Object> usuario = new HashMap<>();
+        usuario.put("id", 1);
+        usuario.put("nombre", nombre);
+        usuario.put("email", email);
+        usuario.put("rol", "USUARIO");
+        usuario.put("estado", "ACTIVO");
+        usuario.put("fechaRegistro", java.time.LocalDateTime.now().toString());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Usuario registrado exitosamente");
+        response.put("usuario", usuario);
+
+        return ResponseEntity.status(201).body(response);
     }
 
     @PostMapping("/login")
@@ -65,18 +68,20 @@ public class AuthController {
             @Parameter(description = "Contraseña del usuario", required = true)
             @RequestParam String password
     ) {
-        return ResponseEntity.ok(Map.of(
-                "token", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
-                "tipo", "Bearer",
-                "expira", 3600,
-                "usuario", Map.of(
-                        "id", 1,
-                        "nombre", "Juan Pérez",
-                        "email", email,
-                        "rol", "USUARIO",
-                        "fechaUltimoAcceso", java.time.LocalDateTime.now().toString()
-                )
-        ));
+        Map<String, Object> usuario = new HashMap<>();
+        usuario.put("id", 1);
+        usuario.put("nombre", "Juan Pérez");
+        usuario.put("email", email);
+        usuario.put("rol", "USUARIO");
+        usuario.put("fechaUltimoAcceso", java.time.LocalDateTime.now().toString());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.example");
+        response.put("tipo", "Bearer");
+        response.put("expira", 3600);
+        response.put("usuario", usuario);
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/recovery")
@@ -91,12 +96,12 @@ public class AuthController {
             @Parameter(description = "Email del usuario registrado", required = true, example = "juan.perez@email.com")
             @RequestParam String email
     ) {
-        return ResponseEntity.ok(Map.of(
-                "message", "Código de recuperación enviado al email",
-                "codigo", "123456", // En producción esto NO se retorna
-                "expira", "15 minutos",
-                "instrucciones", "Revisa tu bandeja de entrada y spam"
-        ));
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Código de recuperación enviado al email");
+        response.put("expira", "15 minutos");
+        response.put("instrucciones", "Revisa tu bandeja de entrada y spam");
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/recovery/verificar")
@@ -112,10 +117,11 @@ public class AuthController {
             @Parameter(description = "Código de 6 dígitos recibido por email") @RequestParam String codigo,
             @Parameter(description = "Nueva contraseña que cumple requisitos de seguridad") @RequestParam String nuevaPassword
     ) {
-        return ResponseEntity.ok(Map.of(
-                "message", "Contraseña actualizada exitosamente",
-                "email", email,
-                "fechaCambio", java.time.LocalDateTime.now().toString()
-        ));
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Contraseña actualizada exitosamente");
+        response.put("email", email);
+        response.put("fechaCambio", java.time.LocalDateTime.now().toString());
+
+        return ResponseEntity.ok(response);
     }
 }

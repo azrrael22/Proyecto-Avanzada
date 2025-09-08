@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -45,30 +46,36 @@ public class ReservaController {
         double precioPorNoche = 150000;
         double precioTotal = noches * precioPorNoche;
 
-        return ResponseEntity.status(201).body(Map.of(
-                "reserva", Map.of(
-                        "id", 1,
-                        "alojamiento", Map.of(
-                                "id", alojamientoId,
-                                "titulo", "Casa Campestre La Calera",
-                                "imagen", "casa1.jpg"
-                        ),
-                        "fechaCheckIn", fechaCheckIn,
-                        "fechaCheckOut", fechaCheckOut,
-                        "numHuespedes", numHuespedes,
-                        "noches", noches,
-                        "precioPorNoche", precioPorNoche,
-                        "precioTotal", precioTotal,
-                        "estado", "PENDIENTE",
-                        "fechaReserva", java.time.LocalDateTime.now().toString()
-                ),
-                "message", "¡Reserva creada exitosamente!",
-                "siguientesPasos", List.of(
-                        "Confirmación enviada al anfitrión",
-                        "Recibirás email de confirmación",
-                        "Puedes cancelar hasta 48 horas antes del check-in"
-                )
+        // Crear data del alojamiento
+        Map<String, Object> alojamientoData = new HashMap<>();
+        alojamientoData.put("id", alojamientoId);
+        alojamientoData.put("titulo", "Casa Campestre La Calera");
+        alojamientoData.put("imagen", "casa1.jpg");
+
+        // Crear data de la reserva
+        Map<String, Object> reservaData = new HashMap<>();
+        reservaData.put("id", 1);
+        reservaData.put("alojamiento", alojamientoData);
+        reservaData.put("fechaCheckIn", fechaCheckIn);
+        reservaData.put("fechaCheckOut", fechaCheckOut);
+        reservaData.put("numHuespedes", numHuespedes);
+        reservaData.put("noches", noches);
+        reservaData.put("precioPorNoche", precioPorNoche);
+        reservaData.put("precioTotal", precioTotal);
+        reservaData.put("estado", "PENDIENTE");
+        reservaData.put("fechaReserva", java.time.LocalDateTime.now().toString());
+
+        // Crear respuesta completa
+        Map<String, Object> response = new HashMap<>();
+        response.put("reserva", reservaData);
+        response.put("message", "¡Reserva creada exitosamente!");
+        response.put("siguientesPasos", List.of(
+                "Confirmación enviada al anfitrión",
+                "Recibirás email de confirmación",
+                "Puedes cancelar hasta 48 horas antes del check-in"
         ));
+
+        return ResponseEntity.status(201).body(response);
     }
 
     @GetMapping
@@ -94,76 +101,53 @@ public class ReservaController {
             @Parameter(description = "Tamaño de página", example = "10")
             @RequestParam(defaultValue = "10") int size
     ) {
-        return ResponseEntity.ok(Map.of(
-                "reservas", List.of(
-                        Map.of(
-                                "id", 1,
-                                "alojamiento", Map.of(
-                                        "id", 1,
-                                        "titulo", "Casa Campestre La Calera",
-                                        "imagen", "casa1.jpg",
-                                        "ciudad", "La Calera"
-                                ),
-                                "fechaCheckIn", "2024-02-15",
-                                "fechaCheckOut", "2024-02-17",
-                                "numHuespedes", 4,
-                                "precioTotal", 300000,
-                                "estado", "CONFIRMADA",
-                                "puedeComentary", false,
-                                "puedeCancelar", true
-                        ),
-                        Map.of(
-                                "id", 2,
-                                "alojamiento", Map.of(
-                                        "id", 2,
-                                        "titulo", "Apartamento Moderno Centro",
-                                        "imagen", "apto1.jpg",
-                                        "ciudad", "Bogotá"
-                                ),
-                                "fechaCheckIn", "2023-12-20",
-                                "fechaCheckOut", "2023-12-22",
-                                "numHuespedes", 2,
-                                "precioTotal", 240000,
-                                "estado", "COMPLETADA",
-                                "puedeComentary", true,
-                                "puedeCancelar", false
-                        ),
-                        Map.of(
-                                "id", 3,
-                                "alojamiento", Map.of(
-                                        "id", 3,
-                                        "titulo", "Finca en Guatapé",
-                                        "imagen", "finca1.jpg",
-                                        "ciudad", "Guatapé"
-                                ),
-                                "fechaCheckIn", "2024-03-10",
-                                "fechaCheckOut", "2024-03-12",
-                                "numHuespedes", 6,
-                                "precioTotal", 400000,
-                                "estado", "CANCELADA",
-                                "motivoCancelacion", "Cambio de planes",
-                                "puedeComentary", false,
-                                "puedeCancelar", false
-                        )
-                ),
-                "filtros", Map.of(
-                        "estado", estado,
-                        "fechaDesde", fechaDesde,
-                        "fechaHasta", fechaHasta
-                ),
-                "resumen", Map.of(
-                        "totalReservas", 8,
-                        "activas", 2,
-                        "completadas", 5,
-                        "canceladas", 1
-                ),
-                "paginacion", Map.of(
-                        "page", page,
-                        "size", size,
-                        "totalElementos", 8,
-                        "totalPaginas", 1
-                )
-        ));
+        // Crear alojamiento 1
+        Map<String, Object> alojamiento1 = new HashMap<>();
+        alojamiento1.put("id", 1);
+        alojamiento1.put("titulo", "Casa Campestre La Calera");
+        alojamiento1.put("imagen", "casa1.jpg");
+        alojamiento1.put("ciudad", "La Calera");
+
+        // Crear reserva 1
+        Map<String, Object> reserva1 = new HashMap<>();
+        reserva1.put("id", 1);
+        reserva1.put("alojamiento", alojamiento1);
+        reserva1.put("fechaCheckIn", "2024-02-15");
+        reserva1.put("fechaCheckOut", "2024-02-17");
+        reserva1.put("numHuespedes", 4);
+        reserva1.put("precioTotal", 300000);
+        reserva1.put("estado", "CONFIRMADA");
+        reserva1.put("puedeComentary", false);
+        reserva1.put("puedeCancelar", true);
+
+        // Crear filtros
+        Map<String, Object> filtros = new HashMap<>();
+        filtros.put("estado", estado);
+        filtros.put("fechaDesde", fechaDesde);
+        filtros.put("fechaHasta", fechaHasta);
+
+        // Crear resumen
+        Map<String, Object> resumen = new HashMap<>();
+        resumen.put("totalReservas", 8);
+        resumen.put("activas", 2);
+        resumen.put("completadas", 5);
+        resumen.put("canceladas", 1);
+
+        // Crear paginación
+        Map<String, Object> paginacion = new HashMap<>();
+        paginacion.put("page", page);
+        paginacion.put("size", size);
+        paginacion.put("totalElementos", 8);
+        paginacion.put("totalPaginas", 1);
+
+        // Crear respuesta completa
+        Map<String, Object> response = new HashMap<>();
+        response.put("reservas", List.of(reserva1));
+        response.put("filtros", filtros);
+        response.put("resumen", resumen);
+        response.put("paginacion", paginacion);
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")
@@ -172,37 +156,45 @@ public class ReservaController {
             @Parameter(description = "ID de la reserva", required = true)
             @PathVariable Long id
     ) {
-        return ResponseEntity.ok(Map.of(
-                "reserva", Map.of(
-                        "id", id,
-                        "alojamiento", Map.of(
-                                "id", 1,
-                                "titulo", "Casa Campestre La Calera",
-                                "descripcion", "Hermosa casa con vista a los cerros",
-                                "imagen", "casa1.jpg",
-                                "direccion", "Vereda Alto del Águila, Km 2",
-                                "anfitrion", Map.of(
-                                        "nombre", "María García",
-                                        "telefono", "+57310987654",
-                                        "email", "maria.garcia@email.com"
-                                )
-                        ),
-                        "fechaCheckIn", "2024-02-15",
-                        "fechaCheckOut", "2024-02-17",
-                        "numHuespedes", 4,
-                        "noches", 2,
-                        "precioPorNoche", 150000,
-                        "precioTotal", 300000,
-                        "estado", "CONFIRMADA",
-                        "fechaReserva", "2024-01-10T14:30:00",
-                        "instrucciones", List.of(
-                                "Check-in: 3:00 PM",
-                                "Check-out: 11:00 AM",
-                                "Las llaves están en la caja de seguridad",
-                                "Código de acceso: 1234"
-                        )
-                )
+        // Crear data del anfitrión
+        Map<String, Object> anfitrionData = new HashMap<>();
+        anfitrionData.put("nombre", "María García");
+        anfitrionData.put("telefono", "+57310987654");
+        anfitrionData.put("email", "maria.garcia@email.com");
+
+        // Crear data del alojamiento
+        Map<String, Object> alojamientoData = new HashMap<>();
+        alojamientoData.put("id", 1);
+        alojamientoData.put("titulo", "Casa Campestre La Calera");
+        alojamientoData.put("descripcion", "Hermosa casa con vista a los cerros");
+        alojamientoData.put("imagen", "casa1.jpg");
+        alojamientoData.put("direccion", "Vereda Alto del Águila, Km 2");
+        alojamientoData.put("anfitrion", anfitrionData);
+
+        // Crear data de la reserva
+        Map<String, Object> reservaData = new HashMap<>();
+        reservaData.put("id", id);
+        reservaData.put("alojamiento", alojamientoData);
+        reservaData.put("fechaCheckIn", "2024-02-15");
+        reservaData.put("fechaCheckOut", "2024-02-17");
+        reservaData.put("numHuespedes", 4);
+        reservaData.put("noches", 2);
+        reservaData.put("precioPorNoche", 150000);
+        reservaData.put("precioTotal", 300000);
+        reservaData.put("estado", "CONFIRMADA");
+        reservaData.put("fechaReserva", "2024-01-10T14:30:00");
+        reservaData.put("instrucciones", List.of(
+                "Check-in: 3:00 PM",
+                "Check-out: 11:00 AM",
+                "Las llaves están en la caja de seguridad",
+                "Código de acceso: 1234"
         ));
+
+        // Crear respuesta completa
+        Map<String, Object> response = new HashMap<>();
+        response.put("reserva", reservaData);
+
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{id}/cancelar")
@@ -221,27 +213,33 @@ public class ReservaController {
             @Parameter(description = "Motivo de la cancelación")
             @RequestParam(required = false) String motivo
     ) {
-        return ResponseEntity.ok(Map.of(
-                "message", "Reserva cancelada exitosamente",
-                "reserva", Map.of(
-                        "id", id,
-                        "estadoAnterior", "CONFIRMADA",
-                        "nuevoEstado", "CANCELADA",
-                        "fechaCancelacion", java.time.LocalDateTime.now().toString(),
-                        "motivoCancelacion", motivo != null ? motivo : "No especificado"
-                ),
-                "reembolso", Map.of(
-                        "aplica", true,
-                        "porcentaje", 80,
-                        "monto", 240000,
-                        "tiempoEstimado", "5-7 días hábiles",
-                        "metodo", "Mismo método de pago utilizado"
-                ),
-                "politicas", List.of(
-                        "Cancelación con más de 48 horas: 80% de reembolso",
-                        "El anfitrión ha sido notificado automáticamente",
-                        "Recibirás confirmación por email"
-                )
+        // Crear data de la reserva cancelada
+        Map<String, Object> reservaData = new HashMap<>();
+        reservaData.put("id", id);
+        reservaData.put("estadoAnterior", "CONFIRMADA");
+        reservaData.put("nuevoEstado", "CANCELADA");
+        reservaData.put("fechaCancelacion", java.time.LocalDateTime.now().toString());
+        reservaData.put("motivoCancelacion", motivo != null ? motivo : "No especificado");
+
+        // Crear data del reembolso
+        Map<String, Object> reembolsoData = new HashMap<>();
+        reembolsoData.put("aplica", true);
+        reembolsoData.put("porcentaje", 80);
+        reembolsoData.put("monto", 240000);
+        reembolsoData.put("tiempoEstimado", "5-7 días hábiles");
+        reembolsoData.put("metodo", "Mismo método de pago utilizado");
+
+        // Crear respuesta completa
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Reserva cancelada exitosamente");
+        response.put("reserva", reservaData);
+        response.put("reembolso", reembolsoData);
+        response.put("politicas", List.of(
+                "Cancelación con más de 48 horas: 80% de reembolso",
+                "El anfitrión ha sido notificado automáticamente",
+                "Recibirás confirmación por email"
         ));
+
+        return ResponseEntity.ok(response);
     }
 }
