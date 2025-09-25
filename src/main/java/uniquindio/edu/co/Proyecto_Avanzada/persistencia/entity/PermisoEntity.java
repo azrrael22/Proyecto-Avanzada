@@ -46,7 +46,7 @@ public class PermisoEntity {
 
     // Relación Many-to-Many con Roles
     @ManyToMany(mappedBy = "permisos", fetch = FetchType.LAZY)
-    private List<Rol> roles;
+    private List<RolEntity> roles;
 
     @PrePersist
     protected void onCreate() {
