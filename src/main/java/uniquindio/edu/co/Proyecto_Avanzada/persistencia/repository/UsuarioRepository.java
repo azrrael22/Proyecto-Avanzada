@@ -86,4 +86,11 @@ public interface UsuarioRepository extends JpaRepository<UsuarioEntity, Long> {
      */
     @Query("SELECT COUNT(r) FROM ReservaEntity r WHERE r.usuario.id = :usuarioId")
     Long countReservasByUsuarioId(@Param("usuarioId") Long usuarioId);
+
+    /**
+     * Validar perfil completo para ser anfitrión
+     */
+    @Query("SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM UsuarioEntity u " +
+            "WHERE u.id = :usuarioId AND u.nombre IS NOT NULL AND u.telefono IS NOT NULL")
+    boolean hasCompleteProfile(@Param("usuarioId") Long usuarioId);
 }
