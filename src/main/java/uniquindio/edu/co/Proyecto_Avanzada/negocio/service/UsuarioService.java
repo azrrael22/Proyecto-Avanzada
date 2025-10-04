@@ -7,6 +7,7 @@ import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Usuario.UsuarioDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Autenticacion.LoginRequestDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Autenticacion.LoginResponseDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Usuario.UsuarioUpdateDTO;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Password.CambiarPasswordDTO;
 
 public interface UsuarioService {
 
@@ -34,5 +35,13 @@ public interface UsuarioService {
      * @throws Exception Si el usuario no se encuentra.
      */
     UsuarioDTO actualizarPerfil(Long usuarioId, UsuarioUpdateDTO updateDTO) throws Exception;
+
+    /**
+     * Cambia la contraseña de un usuario validando su contraseña actual.
+     * @param usuarioId ID del usuario que cambia la contraseña.
+     * @param passwordDTO DTO con la contraseña actual, la nueva y su confirmación.
+     * @throws Exception Si la contraseña actual es incorrecta o las nuevas no coinciden.
+     */
+    void cambiarPassword(Long usuarioId, CambiarPasswordDTO passwordDTO) throws Exception;
 
 }

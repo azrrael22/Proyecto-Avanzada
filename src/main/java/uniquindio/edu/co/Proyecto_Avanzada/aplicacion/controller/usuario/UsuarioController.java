@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Alojamiento.AlojamientoSummaryDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Auxiliares.BusquedaAlojamientosDTO;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Password.CambiarPasswordDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Usuario.UsuarioDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Usuario.UsuarioUpdateDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.service.AlojamientoService;
@@ -238,17 +239,23 @@ public class UsuarioController {
     }
 
     @PutMapping("/cambiar-password")
-    @Operation(summary = "Cambiar contraseña",
-            description = "HU-U010: Cambiar contraseña voluntariamente")
+    @Operation(summary = "Cambiar contraseña", description = "HU-U010: Cambiar contraseña voluntariamente")
     public ResponseEntity<Map<String, Object>> cambiarPassword(
-            @Parameter(description = "Contraseña actual") @RequestParam String passwordActual,
-            @Parameter(description = "Nueva contraseña") @RequestParam String nuevaPassword,
-            @Parameter(description = "Confirmar nueva contraseña") @RequestParam String confirmarPassword
+            @RequestBody CambiarPasswordDTO passwordDTO
     ) {
         Map<String, Object> response = new HashMap<>();
-        response.put("message", "Contraseña actualizada exitosamente");
-        response.put("fechaCambio", java.time.LocalDateTime.now().toString());
+        try {
+            // ID de usuario fijo para probar.
+            Long usuarioId = 1L;
 
-        return ResponseEntity.ok(response);
+            usuarioService.cambiarPassword(usuarioId, passwordDTO);
+
+            response.put("message", "Contraseña actualizada exitosamente");
+            return new ResponseEntity<>(response, HttpStatus.OK);
+
+        } catch (Exception e) {
+            response.put("error", e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
     }
 }

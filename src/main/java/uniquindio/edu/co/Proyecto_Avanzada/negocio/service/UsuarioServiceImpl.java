@@ -14,6 +14,7 @@ import uniquindio.edu.co.Proyecto_Avanzada.persistencia.entity.RolEntity;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Autenticacion.LoginRequestDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Autenticacion.LoginResponseDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Usuario.UsuarioUpdateDTO;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Password.CambiarPasswordDTO;
 
 @Service
 public class UsuarioServiceImpl implements UsuarioService {
@@ -106,5 +107,29 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         // 4. Retornamos el DTO actualizado.
         return usuarioMapper.toDTO(usuarioActualizado);
+    }
+
+    @Override
+    public void cambiarPassword(Long usuarioId, CambiarPasswordDTO passwordDTO) throws Exception {
+        // 1. Buscamos al usuario.
+        UsuarioEntity usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new Exception("El usuario no fue encontrado."));
+
+        // 2. Validamos que la contraseña actual sea correcta.
+        //    (NOTA: En un proyecto real, aquí se usaría un decodificador de contraseñas (PasswordEncoder))
+        if (!usuario.getContraseniaHash().equals(passwordDTO.getPasswordActual())) {
+            throw new Exception("La contraseña actual es incorrecta.");
+        }
+
+        // 3. Validamos que la nueva contraseña y su confirmación coincidan.
+        if (!passwordDTO.getNuevaPassword().equals(passwordDTO.getConfirmarPassword())) {
+            throw new Exception("La nueva contraseña y su confirmación no coinciden.");
+        }
+
+        // 4. Actualizamos la contraseña en la entidad.
+        usuario.setContraseniaHash(passwordDTO.getNuevaPassword());
+
+        // 5. Guardamos el usuario con la nueva contraseña.
+        usuarioRepository.save(usuario);
     }
 }
