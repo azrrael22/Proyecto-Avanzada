@@ -11,7 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Alojamiento.AlojamientoCreateDTO;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Alojamiento.AlojamientoDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Alojamiento.AlojamientoSummaryDTO;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Alojamiento.AlojamientoUpdateDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.service.AlojamientoService;
 
 import java.util.HashMap;
@@ -87,47 +89,42 @@ public class AlojamientoController {
         }
     }
 
-    @PutMapping("/{id}")
-    @Operation(summary = "Editar alojamiento",
-            description = "HU-A002: Actualizar información de alojamiento propio")
+    @PutMapping("/{alojamientoId}")
+    @Operation(summary = "Editar alojamiento", description = "HU-A002: Actualizar información de alojamiento propio")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Alojamiento actualizado exitosamente"),
-            @ApiResponse(responseCode = "404", description = "Alojamiento no encontrado o no es tuyo"),
-            @ApiResponse(responseCode = "400", description = "Datos inválidos")
+            @ApiResponse(responseCode = "404", description = "Alojamiento no encontrado"),
+            @ApiResponse(responseCode = "403", description = "No tienes permiso para editar este alojamiento")
     })
-    public ResponseEntity<Map<String, Object>> editarAlojamiento(
-            @Parameter(description = "ID del alojamiento", required = true)
-            @PathVariable Long id,
-
-            @Parameter(description = "Nuevo título")
-            @RequestParam(required = false) String titulo,
-
-            @Parameter(description = "Nueva descripción")
-            @RequestParam(required = false) String descripcion,
-
-            @Parameter(description = "Nuevo precio por noche")
-            @RequestParam(required = false) Double precio,
-
-            @Parameter(description = "Nueva capacidad máxima")
-            @RequestParam(required = false) Integer capacidad,
-
-            @Parameter(description = "Nuevos servicios separados por coma")
-            @RequestParam(required = false) String servicios
+    public ResponseEntity<Map<String, Object>> actualizarAlojamiento(
+            @PathVariable Long alojamientoId,
+            @RequestBody AlojamientoUpdateDTO updateDTO
     ) {
-        Map<String, Object> alojamientoActualizado = new HashMap<>();
-        alojamientoActualizado.put("id", id);
-        alojamientoActualizado.put("titulo", titulo != null ? titulo : "Casa Campestre La Calera");
-        alojamientoActualizado.put("descripcion", descripcion != null ? descripcion : "Hermosa casa con vista panorámica");
-        alojamientoActualizado.put("precio", precio != null ? precio : 150000);
-        alojamientoActualizado.put("capacidad", capacidad != null ? capacidad : 6);
-        alojamientoActualizado.put("servicios", servicios != null ? List.of(servicios.split(",")) : List.of("WiFi", "Piscina"));
-        alojamientoActualizado.put("fechaActualizacion", java.time.LocalDateTime.now().toString());
-
         Map<String, Object> response = new HashMap<>();
-        response.put("message", "Alojamiento actualizado exitosamente");
-        response.put("alojamiento", alojamientoActualizado);
+        try {
+            // De nuevo, usamos un ID de anfitrión fijo para probar.
+            Long anfitrionId = 1L;
 
-        return ResponseEntity.ok(response);
+            AlojamientoDTO alojamientoActualizado = alojamientoService.actualizarAlojamiento(alojamientoId, updateDTO, anfitrionId);
+
+            response.put("message", "Alojamiento actualizado exitosamente");
+            response.put("alojamiento", alojamientoActualizado);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+
+        } catch (Exception e) {
+            // Manejo de errores específicos
+            if (e.getMessage().contains("No tienes permiso")) {
+                response.put("error", e.getMessage());
+                return new ResponseEntity<>(response, HttpStatus.FORBIDDEN); // 403 Prohibido
+            }
+            if (e.getMessage().contains("no fue encontrado")) {
+                response.put("error", e.getMessage());
+                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND); // 404 No Encontrado
+            }
+            // Error genérico
+            response.put("error", "Ocurrió un error inesperado: " + e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PutMapping("/{id}/estado")

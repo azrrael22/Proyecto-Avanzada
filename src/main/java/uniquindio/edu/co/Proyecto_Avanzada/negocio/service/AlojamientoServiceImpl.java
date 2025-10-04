@@ -12,6 +12,7 @@ import uniquindio.edu.co.Proyecto_Avanzada.persistencia.mapper.AlojamientoMapper
 import uniquindio.edu.co.Proyecto_Avanzada.persistencia.repository.AlojamientoRepository;
 import uniquindio.edu.co.Proyecto_Avanzada.persistencia.repository.UsuarioRepository;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Alojamiento.AlojamientoSummaryDTO;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Alojamiento.AlojamientoUpdateDTO;
 import java.util.List;
 
 @Service
@@ -54,5 +55,28 @@ public class AlojamientoServiceImpl implements AlojamientoService {
         // 2. Usamos el mapper para convertir la lista de entidades (de la BD)
         //    a una lista de DTOs resumidos (para la respuesta).
         return alojamientoMapper.toSummaryDTOList(alojamientos);
+    }
+
+    @Override
+    public AlojamientoDTO actualizarAlojamiento(Long alojamientoId, AlojamientoUpdateDTO alojamientoUpdateDTO, Long anfitrionId) throws Exception {
+        // 1. Buscamos el alojamiento en la base de datos por su ID.
+        AlojamientoEntity alojamientoExistente = alojamientoRepository.findById(alojamientoId)
+                .orElseThrow(() -> new Exception("El alojamiento con ID " + alojamientoId + " no fue encontrado."));
+
+        // 2. ¡VALIDACIÓN DE SEGURIDAD! Verificamos que el anfitrión que hace la petición
+        //    sea el verdadero dueño del alojamiento.
+        if (!alojamientoExistente.getAnfitrion().getId().equals(anfitrionId)) {
+            throw new Exception("No tienes permiso para editar este alojamiento.");
+        }
+
+        // 3. Usamos el mapper para actualizar la entidad existente con los datos del DTO.
+        //    MapStruct es lo suficientemente inteligente para solo actualizar los campos que no son nulos.
+        alojamientoMapper.updateEntityFromDTO(alojamientoUpdateDTO, alojamientoExistente);
+
+        // 4. Guardamos la entidad actualizada en la base de datos.
+        AlojamientoEntity alojamientoActualizado = alojamientoRepository.save(alojamientoExistente);
+
+        // 5. Convertimos la entidad final a un DTO y la retornamos.
+        return alojamientoMapper.toDTO(alojamientoActualizado);
     }
 }
