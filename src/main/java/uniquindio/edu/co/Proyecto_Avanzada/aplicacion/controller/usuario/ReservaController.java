@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Reserva.ReservaCreateDTO;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Reserva.ReservaDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.service.ReservaService;
 
 import java.util.HashMap;
@@ -66,58 +67,27 @@ public class ReservaController {
             @ApiResponse(responseCode = "401", description = "Usuario no autenticado")
     })
     public ResponseEntity<Map<String, Object>> historialReservas(
-            @Parameter(description = "Filtro por estado: PENDIENTE, CONFIRMADA, CANCELADA, COMPLETADA")
-            @RequestParam(required = false) String estado,
-            @Parameter(description = "Fecha desde (YYYY-MM-DD)")
-            @RequestParam(required = false) String fechaDesde,
-            @Parameter(description = "Fecha hasta (YYYY-MM-DD)")
-            @RequestParam(required = false) String fechaHasta,
-            @Parameter(description = "Página (0-based)", example = "0")
-            @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "Tamaño de página", example = "10")
-            @RequestParam(defaultValue = "10") int size
+            @Parameter(description = "Filtro por estado: PENDIENTE, CONFIRMADA, CANCELADA, COMPLETADA") @RequestParam(required = false) String estado,
+            @Parameter(description = "Fecha desde (YYYY-MM-DD)") @RequestParam(required = false) String fechaDesde,
+            @Parameter(description = "Fecha hasta (YYYY-MM-DD)") @RequestParam(required = false) String fechaHasta,
+            @Parameter(description = "Página (0-based)", example = "0") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Tamaño de página", example = "10") @RequestParam(defaultValue = "10") int size
     ) {
-        // Crear alojamiento 1
-        Map<String, Object> alojamiento1 = new HashMap<>();
-        alojamiento1.put("id", 1);
-        alojamiento1.put("titulo", "Casa Campestre La Calera");
-        alojamiento1.put("imagen", "casa1.jpg");
-        alojamiento1.put("ciudad", "La Calera");
-        // Crear reserva 1
-        Map<String, Object> reserva1 = new HashMap<>();
-        reserva1.put("id", 1);
-        reserva1.put("alojamiento", alojamiento1);
-        reserva1.put("fechaCheckin", "2024-02-15");
-        reserva1.put("fechaCheckOut", "2024-02-17");
-        reserva1.put("numHuespedes", 4);
-        reserva1.put("precioTotal", 300000);
-        reserva1.put("estado", "CONFIRMADA");
-        reserva1.put("puedeComentary", false);
-        reserva1.put("puedeCancelar", true);
-        // Crear filtros
-        Map<String, Object> filtros = new HashMap<>();
-        filtros.put("estado", estado);
-        filtros.put("fechaDesde", fechaDesde);
-        filtros.put("fechaHasta", fechaHasta);
-        // Crear resumen
-        Map<String, Object> resumen = new HashMap<>();
-        resumen.put("totalReservas", 8);
-        resumen.put("activas", 2);
-        resumen.put("completadas", 5);
-        resumen.put("canceladas", 1);
-        // Crear paginación
-        Map<String, Object> paginacion = new HashMap<>();
-        paginacion.put("page", page);
-        paginacion.put("size", size);
-        paginacion.put("totalElementos", 8);
-        paginacion.put("totalPaginas", 1);
-        // Crear respuesta completa
         Map<String, Object> response = new HashMap<>();
-        response.put("reservas", List.of(reserva1));
-        response.put("filtros", filtros);
-        response.put("resumen", resumen);
-        response.put("paginacion", paginacion);
-        return ResponseEntity.ok(response);
+        try {
+            // ID de usuario fijo para probar. Más adelante se obtendrá del token.
+            Long usuarioId = 1L;
+
+            List<ReservaDTO> historial = reservaService.listarReservasPorUsuario(usuarioId);
+
+            // Mantenemos la estructura de respuesta original dentro de un mapa.
+            response.put("reservas", historial);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+
+        } catch (Exception e) {
+            response.put("error", e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping("/{id}")

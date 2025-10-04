@@ -5,6 +5,8 @@ package uniquindio.edu.co.Proyecto_Avanzada.negocio.service;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Reserva.ReservaCreateDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Reserva.ReservaDTO;
 
+import java.util.List;
+
 public interface ReservaService {
 
     /**
@@ -15,5 +17,12 @@ public interface ReservaService {
      * @throws Exception Si alguna validación falla (disponibilidad, capacidad, etc.).
      */
     ReservaDTO crearReserva(ReservaCreateDTO reservaCreateDTO, Long usuarioId) throws Exception;
+
+    /**
+     * Obtiene el historial de reservas de un usuario.
+     * @param usuarioId ID del usuario.
+     * @return Lista de DTOs de las reservas del usuario.
+     */
+    List<ReservaDTO> listarReservasPorUsuario(Long usuarioId);
 
 }

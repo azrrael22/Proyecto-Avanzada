@@ -3,6 +3,7 @@
 package uniquindio.edu.co.Proyecto_Avanzada.negocio.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Reserva.ReservaCreateDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Reserva.ReservaDTO;
@@ -17,6 +18,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
+import java.util.List;
 
 @Service
 public class ReservaServiceImpl implements ReservaService {
@@ -81,5 +83,14 @@ public class ReservaServiceImpl implements ReservaService {
         if (!estaDisponible) {
             throw new Exception("El alojamiento no está disponible en las fechas seleccionadas.");
         }
+    }
+
+    @Override
+    public List<ReservaDTO> listarReservasPorUsuario(Long usuarioId) {
+        // 1. Buscamos todas las entidades de reserva para el ID de usuario.
+        List<ReservaEntity> reservas = reservaRepository.findByUsuario_Id(usuarioId, Pageable.unpaged()).getContent();
+
+        // 2. Las convertimos a una lista de DTOs y las retornamos.
+        return reservaMapper.toDTOList(reservas);
     }
 }
