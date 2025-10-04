@@ -124,4 +124,14 @@ public class ReservaServiceImpl implements ReservaService {
         // 6. Guardamos los cambios en la base de datos.
         reservaRepository.save(reserva);
     }
+
+    @Override
+    public List<ReservaDTO> listarReservasPorAnfitrion(Long anfitrionId) {
+        // 1. Usamos el método del repositorio que busca todas las reservas
+        //    cuyo alojamiento pertenezca al anfitrión especificado.
+        List<ReservaEntity> reservas = reservaRepository.findByAlojamiento_Anfitrion_Id(anfitrionId, Pageable.unpaged()).getContent();
+
+        // 2. Convertimos la lista de entidades a una lista de DTOs.
+        return reservaMapper.toDTOList(reservas);
+    }
 }

@@ -33,4 +33,11 @@ public interface ReservaService {
      */
     void cancelarReserva(Long reservaId, Long usuarioId) throws Exception;
 
+    /**
+     * Obtiene todas las reservas hechas en los alojamientos de un anfitrión.
+     * @param anfitrionId ID del anfitrión.
+     * @return Lista de DTOs de las reservas recibidas.
+     */
+    List<ReservaDTO> listarReservasPorAnfitrion(Long anfitrionId);
+
 }
