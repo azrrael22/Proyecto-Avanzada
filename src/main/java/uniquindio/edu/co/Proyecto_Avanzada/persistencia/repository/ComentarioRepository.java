@@ -85,4 +85,8 @@ public interface ComentarioRepository extends JpaRepository<ComentarioEntity, Lo
     @Query("SELECT c.calificacion, COUNT(c) FROM ComentarioEntity c WHERE c.alojamiento.id = :alojamientoId " +
             "GROUP BY c.calificacion ORDER BY c.calificacion DESC")
     List<Object[]> findCalificacionDistribution(@Param("alojamientoId") Long alojamientoId);
+
+
+    @Query("SELECT AVG(c.calificacion) FROM ComentarioEntity c WHERE c.alojamiento.anfitrion.id = :anfitrionId")
+    Double findAverageCalificacionByAnfitrionId(@Param("anfitrionId") Long anfitrionId);
 }

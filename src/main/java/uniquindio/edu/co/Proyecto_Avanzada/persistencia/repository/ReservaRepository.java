@@ -337,4 +337,6 @@ public interface ReservaRepository extends JpaRepository<ReservaEntity, Long> {
             "GROUP BY r.usuario.id, r.usuario.nombre " +
             "ORDER BY COUNT(r) DESC")
     List<Object[]> findTopGuestsByAnfitrion(@Param("anfitrionId") Long anfitrionId);
+
+    long countByAlojamiento_Anfitrion_Id(Long anfitrionId);
 }

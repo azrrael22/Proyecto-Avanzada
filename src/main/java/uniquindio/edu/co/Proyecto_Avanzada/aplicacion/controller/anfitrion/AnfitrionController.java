@@ -10,7 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Anfitrion.MetricasAnfitrionDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Reserva.ReservaDTO;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.service.AnfitrionService;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.service.ReservaService;
 
 import java.util.HashMap;
@@ -26,6 +28,9 @@ public class AnfitrionController {
     @Autowired
     private ReservaService reservaService;
 
+    @Autowired
+    private AnfitrionService anfitrionService;
+
     @GetMapping("/dashboard")
     @Operation(summary = "Dashboard del anfitrión",
             description = "Resumen de actividad: alojamientos, reservas, ingresos, métricas")
@@ -34,47 +39,21 @@ public class AnfitrionController {
             @ApiResponse(responseCode = "401", description = "Usuario no autenticado"),
             @ApiResponse(responseCode = "403", description = "Usuario no es anfitrión")
     })
-    public ResponseEntity<Map<String, Object>> dashboard() {
-        Map<String, Object> resumen = new HashMap<>();
-        resumen.put("totalAlojamientos", 3);
-        resumen.put("alojamientosActivos", 2);
-        resumen.put("reservasPendientes", 5);
-        resumen.put("ingresosMesActual", 850000);
+    public ResponseEntity<?> dashboard() {
+        try {
+            // ID del anfitrion fijo para probar
+            Long anfitrionId = 1L;
 
-        Map<String, Object> alojamiento1 = new HashMap<>();
-        alojamiento1.put("id", 1);
-        alojamiento1.put("titulo", "Casa Campestre La Calera");
-        alojamiento1.put("estado", "ACTIVO");
-        alojamiento1.put("reservasEsteMes", 3);
-        alojamiento1.put("calificacion", 4.5);
+            MetricasAnfitrionDTO metricas = anfitrionService.obtenerMetricas(anfitrionId);
 
-        Map<String, Object> alojamiento2 = new HashMap<>();
-        alojamiento2.put("id", 2);
-        alojamiento2.put("titulo", "Apartamento Centro Bogotá");
-        alojamiento2.put("estado", "ACTIVO");
-        alojamiento2.put("reservasEsteMes", 2);
-        alojamiento2.put("calificacion", 4.2);
+            // Devolvemos directamente el DTO con las métricas para una respuesta limpia
+            return new ResponseEntity<>(metricas, HttpStatus.OK);
 
-        Map<String, Object> reserva1 = new HashMap<>();
-        reserva1.put("id", 1);
-        reserva1.put("alojamiento", "Casa Campestre");
-        reserva1.put("huesped", "Juan Pérez");
-        reserva1.put("fechas", "2024-02-15 a 2024-02-17");
-        reserva1.put("estado", "PENDIENTE");
-
-        Map<String, Object> reserva2 = new HashMap<>();
-        reserva2.put("id", 2);
-        reserva2.put("alojamiento", "Apartamento Centro");
-        reserva2.put("huesped", "María García");
-        reserva2.put("fechas", "2024-02-20 a 2024-02-22");
-        reserva2.put("estado", "CONFIRMADA");
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("resumen", resumen);
-        response.put("alojamientosRecientes", List.of(alojamiento1, alojamiento2));
-        response.put("reservasRecientes", List.of(reserva1, reserva2));
-
-        return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("error", e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping("/reservas")

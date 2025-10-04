@@ -147,4 +147,12 @@ public interface AlojamientoRepository extends JpaRepository<AlojamientoEntity, 
             @Param("fechaCheckOut") LocalDate fechaCheckOut,
             Pageable pageable
     );
+
+    /**
+     * Método para contar los alojamientos de un anfitrion
+     * @param anfitrionId
+     * @param estado
+     * @return
+     */
+    long countByAnfitrion_IdAndEstadoNot(Long anfitrionId, EstadoAlojamiento estado);
 }
