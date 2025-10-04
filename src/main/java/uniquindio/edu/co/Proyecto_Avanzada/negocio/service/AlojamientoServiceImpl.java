@@ -15,6 +15,9 @@ import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Alojamiento.Alojamie
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Alojamiento.AlojamientoUpdateDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.persistencia.repository.ReservaRepository;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.enums.EstadoAlojamiento;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Auxiliares.BusquedaAlojamientosDTO;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 @Service
@@ -112,5 +115,22 @@ public class AlojamientoServiceImpl implements AlojamientoService {
 
         // 5. Guardamos el cambio en la base de datos.
         alojamientoRepository.save(alojamiento);
+    }
+
+    @Override
+    public List<AlojamientoSummaryDTO> buscarAlojamientosDisponibles(BusquedaAlojamientosDTO filtros) {
+        // Por ahora, ignoraremos la paginación para simplificar
+        Pageable pageable = PageRequest.of(0, 10); // Traer los primeros 10 resultados
+
+        List<AlojamientoEntity> alojamientos = alojamientoRepository.buscarAlojamientosDisponibles(
+                filtros.getCiudad(),
+                filtros.getPrecioMin(),
+                filtros.getPrecioMax(),
+                filtros.getTipo(),
+                filtros.getFechaCheckIn(),
+                filtros.getFechaCheckOut(),
+                pageable
+        ).getContent();
+        return alojamientoMapper.toSummaryDTOList(alojamientos);
     }
 }

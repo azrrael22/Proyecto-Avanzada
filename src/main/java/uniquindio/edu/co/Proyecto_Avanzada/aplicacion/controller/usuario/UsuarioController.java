@@ -6,8 +6,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Alojamiento.AlojamientoSummaryDTO;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Auxiliares.BusquedaAlojamientosDTO;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.service.AlojamientoService;
 
 import java.util.HashMap;
 import java.util.List;
@@ -19,88 +24,26 @@ import java.util.Map;
 @SecurityRequirement(name = "Bearer Authentication")
 public class UsuarioController {
 
+    // Al principio de la clase UsuarioController.java, añade esta inyección:
+    @Autowired
+    private AlojamientoService alojamientoService;
+
     @GetMapping("/alojamientos")
-    @Operation(summary = "Buscar alojamientos",
-            description = "HU-U003: Búsqueda de alojamientos con filtros (ciudad, fechas, precio, tipo)")
+    @Operation(summary = "Buscar alojamientos", description = "HU-U003: Búsqueda de alojamientos con filtros...")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Búsqueda realizada exitosamente"),
-            @ApiResponse(responseCode = "400", description = "Filtros inválidos"),
-            @ApiResponse(responseCode = "401", description = "Usuario no autenticado")
+            @ApiResponse(responseCode = "400", description = "Filtros inválidos")
     })
-    public ResponseEntity<Map<String, Object>> buscarAlojamientos(
-            @Parameter(description = "Ciudad de búsqueda", example = "Bogotá")
-            @RequestParam(required = false) String ciudad,
-
-            @Parameter(description = "Fecha de check-in en formato YYYY-MM-DD", example = "2024-02-15")
-            @RequestParam(required = false) String fechaCheckIn,
-
-            @Parameter(description = "Fecha de check-out en formato YYYY-MM-DD", example = "2024-02-17")
-            @RequestParam(required = false) String fechaCheckOut,
-
-            @Parameter(description = "Precio mínimo por noche", example = "50000")
-            @RequestParam(required = false) Double precioMin,
-
-            @Parameter(description = "Precio máximo por noche", example = "200000")
-            @RequestParam(required = false) Double precioMax,
-
-            @Parameter(description = "Tipo de alojamiento: CASA, APARTAMENTO, FINCA", example = "CASA")
-            @RequestParam(required = false) String tipo,
-
-            @Parameter(description = "Número de página (0-based)", example = "0")
-            @RequestParam(defaultValue = "0") int page,
-
-            @Parameter(description = "Tamaño de página", example = "10")
-            @RequestParam(defaultValue = "10") int size
+    public ResponseEntity<List<AlojamientoSummaryDTO>> buscarAlojamientos(
+            // Spring Boot mapeará automáticamente los parámetros de la URL a este objeto DTO
+            @ModelAttribute BusquedaAlojamientosDTO filtros
     ) {
-        Map<String, Object> filtros = new HashMap<>();
-        filtros.put("ciudad", ciudad);
-        filtros.put("fechaCheckIn", fechaCheckIn);
-        filtros.put("fechaCheckOut", fechaCheckOut);
-        filtros.put("rangoPrecios", (precioMin != null && precioMax != null) ? precioMin + " - " + precioMax : "Sin filtro");
-        filtros.put("tipo", tipo);
-
-        Map<String, Object> resultado1 = new HashMap<>();
-        resultado1.put("id", 1);
-        resultado1.put("titulo", "Casa Campestre La Calera");
-        resultado1.put("ciudad", "La Calera");
-        resultado1.put("precio", 150000);
-        resultado1.put("calificacion", 4.5);
-        resultado1.put("imagen", "casa1.jpg");
-        resultado1.put("capacidad", 6);
-        resultado1.put("tipo", "CASA");
-
-        Map<String, Object> resultado2 = new HashMap<>();
-        resultado2.put("id", 2);
-        resultado2.put("titulo", "Apartamento Moderno Centro");
-        resultado2.put("ciudad", "Bogotá");
-        resultado2.put("precio", 120000);
-        resultado2.put("calificacion", 4.2);
-        resultado2.put("imagen", "apto1.jpg");
-        resultado2.put("capacidad", 4);
-        resultado2.put("tipo", "APARTAMENTO");
-
-        Map<String, Object> resultado3 = new HashMap<>();
-        resultado3.put("id", 3);
-        resultado3.put("titulo", "Finca en Guatapé");
-        resultado3.put("ciudad", "Guatapé");
-        resultado3.put("precio", 200000);
-        resultado3.put("calificacion", 4.8);
-        resultado3.put("imagen", "finca1.jpg");
-        resultado3.put("capacidad", 8);
-        resultado3.put("tipo", "FINCA");
-
-        Map<String, Object> paginacion = new HashMap<>();
-        paginacion.put("page", page);
-        paginacion.put("size", size);
-        paginacion.put("totalElementos", 25);
-        paginacion.put("totalPaginas", 3);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("filtros", filtros);
-        response.put("resultados", List.of(resultado1, resultado2, resultado3));
-        response.put("paginacion", paginacion);
-
-        return ResponseEntity.ok(response);
+        try {
+            List<AlojamientoSummaryDTO> resultados = alojamientoService.buscarAlojamientosDisponibles(filtros);
+            return new ResponseEntity<>(resultados, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping("/alojamientos/{id}")

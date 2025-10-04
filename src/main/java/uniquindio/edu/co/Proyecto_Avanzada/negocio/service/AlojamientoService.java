@@ -6,6 +6,7 @@ import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Alojamiento.Alojamie
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Alojamiento.AlojamientoDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Alojamiento.AlojamientoSummaryDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Alojamiento.AlojamientoUpdateDTO;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Auxiliares.BusquedaAlojamientosDTO;
 import java.util.List;
 
 public interface AlojamientoService {
@@ -43,5 +44,7 @@ public interface AlojamientoService {
      * @throws Exception Si el alojamiento no existe, no pertenece al anfitrión o tiene reservas futuras.
      */
     void eliminarAlojamiento(Long alojamientoId, Long anfitrionId) throws Exception;
+
+    List<AlojamientoSummaryDTO> buscarAlojamientosDisponibles(BusquedaAlojamientosDTO filtros);
 
 }

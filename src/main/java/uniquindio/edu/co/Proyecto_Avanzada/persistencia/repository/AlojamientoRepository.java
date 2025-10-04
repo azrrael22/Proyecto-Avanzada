@@ -13,6 +13,10 @@ import uniquindio.edu.co.Proyecto_Avanzada.negocio.enums.EstadoAlojamiento;
 import java.util.List;
 import java.math.BigDecimal;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 
 /**
  * Repositorio para operaciones de base de datos con alojamientos
@@ -124,4 +128,23 @@ public interface AlojamientoRepository extends JpaRepository<AlojamientoEntity, 
                                             @Param("precioMax") BigDecimal precioMax,
                                             @Param("capacidad") Integer capacidad,
                                             Pageable pageable);
+
+    @Query("SELECT a FROM AlojamientoEntity a WHERE a.estado = 'ACTIVO' " +
+            "AND (:ciudad IS NULL OR LOWER(a.ciudad) LIKE LOWER(CONCAT('%', :ciudad, '%'))) " +
+            "AND (:precioMin IS NULL OR a.precioPorNoche >= :precioMin) " +
+            "AND (:precioMax IS NULL OR a.precioPorNoche <= :precioMax) " +
+            "AND (:tipo IS NULL OR a.tipo = :tipo) " +
+            // Subconsulta para verificar disponibilidad de fechas
+            "AND NOT EXISTS (SELECT r FROM ReservaEntity r WHERE r.alojamiento.id = a.id " +
+            "AND r.estado IN ('PENDIENTE', 'CONFIRMADA') " +
+            "AND (r.fechaCheckIn < :fechaCheckOut AND r.fechaCheckOut > :fechaCheckIn))")
+    Page<AlojamientoEntity> buscarAlojamientosDisponibles(
+            @Param("ciudad") String ciudad,
+            @Param("precioMin") BigDecimal precioMin,
+            @Param("precioMax") BigDecimal precioMax,
+            @Param("tipo") TipoAlojamiento tipo,
+            @Param("fechaCheckIn") LocalDate fechaCheckIn,
+            @Param("fechaCheckOut") LocalDate fechaCheckOut,
+            Pageable pageable
+    );
 }
