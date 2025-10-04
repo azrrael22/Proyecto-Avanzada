@@ -13,6 +13,7 @@ import uniquindio.edu.co.Proyecto_Avanzada.persistencia.repository.RolRepository
 import uniquindio.edu.co.Proyecto_Avanzada.persistencia.entity.RolEntity;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Autenticacion.LoginRequestDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Autenticacion.LoginResponseDTO;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Usuario.UsuarioUpdateDTO;
 
 @Service
 public class UsuarioServiceImpl implements UsuarioService {
@@ -89,5 +90,21 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .expira(3600) // 1 hora de validez (en segundos)
                 .usuario(usuarioDTO)
                 .build();
+    }
+
+    @Override
+    public UsuarioDTO actualizarPerfil(Long usuarioId, UsuarioUpdateDTO updateDTO) throws Exception {
+        // 1. Buscamos al usuario que se quiere actualizar.
+        UsuarioEntity usuarioExistente = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new Exception("El usuario con ID " + usuarioId + " no fue encontrado."));
+
+        // 2. Usamos el mapper para aplicar los cambios del DTO a la entidad.
+        usuarioMapper.updateEntityFromDTO(updateDTO, usuarioExistente);
+
+        // 3. Guardamos la entidad actualizada.
+        UsuarioEntity usuarioActualizado = usuarioRepository.save(usuarioExistente);
+
+        // 4. Retornamos el DTO actualizado.
+        return usuarioMapper.toDTO(usuarioActualizado);
     }
 }

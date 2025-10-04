@@ -12,7 +12,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Alojamiento.AlojamientoSummaryDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Auxiliares.BusquedaAlojamientosDTO;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Usuario.UsuarioDTO;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Usuario.UsuarioUpdateDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.service.AlojamientoService;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.service.UsuarioService;
 
 import java.util.HashMap;
 import java.util.List;
@@ -24,9 +27,11 @@ import java.util.Map;
 @SecurityRequirement(name = "Bearer Authentication")
 public class UsuarioController {
 
-    // Al principio de la clase UsuarioController.java, añade esta inyección:
     @Autowired
     private AlojamientoService alojamientoService;
+
+    @Autowired
+    private UsuarioService usuarioService;
 
     @GetMapping("/alojamientos")
     @Operation(summary = "Buscar alojamientos", description = "HU-U003: Búsqueda de alojamientos con filtros...")
@@ -211,25 +216,25 @@ public class UsuarioController {
     }
 
     @PutMapping("/perfil")
-    @Operation(summary = "Editar perfil de usuario",
-            description = "HU-U009: Actualizar información personal (excepto email)")
+    @Operation(summary = "Editar perfil de usuario", description = "HU-U009: Actualizar información personal (excepto email)")
     public ResponseEntity<Map<String, Object>> editarPerfil(
-            @Parameter(description = "Nombre completo") @RequestParam(required = false) String nombre,
-            @Parameter(description = "Teléfono") @RequestParam(required = false) String telefono,
-            @Parameter(description = "URL de foto de perfil") @RequestParam(required = false) String fotoPerfil
+            @RequestBody UsuarioUpdateDTO updateDTO // Usamos @RequestBody para recibir el JSON
     ) {
-        Map<String, Object> usuario = new HashMap<>();
-        usuario.put("id", 1);
-        usuario.put("nombre", nombre != null ? nombre : "Juan Pérez");
-        usuario.put("telefono", telefono != null ? telefono : "+57300123456");
-        usuario.put("fotoPerfil", fotoPerfil != null ? fotoPerfil : "juan.jpg");
-        usuario.put("fechaActualizacion", java.time.LocalDateTime.now().toString());
-
         Map<String, Object> response = new HashMap<>();
-        response.put("message", "Perfil actualizado exitosamente");
-        response.put("usuario", usuario);
+        try {
+            // ID de usuario fijo para probar. Se obtendría del token.
+            Long usuarioId = 1L;
 
-        return ResponseEntity.ok(response);
+            UsuarioDTO usuarioActualizado = usuarioService.actualizarPerfil(usuarioId, updateDTO);
+
+            response.put("message", "Perfil actualizado exitosamente");
+            response.put("usuario", usuarioActualizado);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+
+        } catch (Exception e) {
+            response.put("error", e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        }
     }
 
     @PutMapping("/cambiar-password")

@@ -6,6 +6,7 @@ import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Usuario.UsuarioCreat
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Usuario.UsuarioDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Autenticacion.LoginRequestDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Autenticacion.LoginResponseDTO;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Usuario.UsuarioUpdateDTO;
 
 public interface UsuarioService {
 
@@ -24,5 +25,14 @@ public interface UsuarioService {
      * @throws Exception si las credenciales son incorrectas o el usuario no existe.
      */
     LoginResponseDTO login(LoginRequestDTO loginRequestDTO) throws Exception;
+
+    /**
+     * Actualiza el perfil de un usuario existente.
+     * @param usuarioId ID del usuario a modificar.
+     * @param updateDTO DTO con la nueva información.
+     * @return El DTO del usuario con los datos actualizados.
+     * @throws Exception Si el usuario no se encuentra.
+     */
+    UsuarioDTO actualizarPerfil(Long usuarioId, UsuarioUpdateDTO updateDTO) throws Exception;
 
 }
