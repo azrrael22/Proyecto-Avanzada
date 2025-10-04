@@ -11,6 +11,8 @@ import uniquindio.edu.co.Proyecto_Avanzada.persistencia.entity.UsuarioEntity;
 import uniquindio.edu.co.Proyecto_Avanzada.persistencia.mapper.AlojamientoMapper;
 import uniquindio.edu.co.Proyecto_Avanzada.persistencia.repository.AlojamientoRepository;
 import uniquindio.edu.co.Proyecto_Avanzada.persistencia.repository.UsuarioRepository;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Alojamiento.AlojamientoSummaryDTO;
+import java.util.List;
 
 @Service
 public class AlojamientoServiceImpl implements AlojamientoService {
@@ -41,5 +43,16 @@ public class AlojamientoServiceImpl implements AlojamientoService {
 
         // 5. Convertimos la entidad que acabamos de guardar a un DTO de respuesta para enviarlo de vuelta.
         return alojamientoMapper.toDTO(alojamientoGuardado);
+    }
+
+    @Override
+    public List<AlojamientoSummaryDTO> listarAlojamientosPorAnfitrion(Long anfitrionId) {
+        // 1. Usamos el repositorio para buscar en la BD todos los alojamientos
+        //    cuyo anfitrión tenga el ID que nos pasaron.
+        List<AlojamientoEntity> alojamientos = alojamientoRepository.findByAnfitrion_Id(anfitrionId);
+
+        // 2. Usamos el mapper para convertir la lista de entidades (de la BD)
+        //    a una lista de DTOs resumidos (para la respuesta).
+        return alojamientoMapper.toSummaryDTOList(alojamientos);
     }
 }

@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Alojamiento.AlojamientoCreateDTO;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Alojamiento.AlojamientoSummaryDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.service.AlojamientoService;
 
 import java.util.HashMap;
@@ -57,10 +58,11 @@ public class AlojamientoController {
     @Operation(summary = "Gestionar mis alojamientos", description = "HU-A002: Ver lista de todos mis alojamientos con métricas básicas")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista obtenida exitosamente"),
-            @ApiResponse(responseCode = "401", description = "Usuario no autenticado"),
-            @ApiResponse(responseCode = "403", description = "Usuario no es anfitrión")
+            // ... (otras respuestas)
     })
     public ResponseEntity<Map<String, Object>> gestionarMisAlojamientos(
+            // NOTA: Por ahora ignoraremos los parámetros de paginación y filtro para simplificar.
+            // Más adelante se pueden implementar.
             @Parameter(description = "Filtro por estado: ACTIVO, INACTIVO, ELIMINADO")
             @RequestParam(required = false) String estado,
             @Parameter(description = "Página (0-based)", example = "0")
@@ -68,60 +70,21 @@ public class AlojamientoController {
             @Parameter(description = "Tamaño de página", example = "10")
             @RequestParam(defaultValue = "10") int size
     ) {
-        Map<String, Object> alojamiento1 = new HashMap<>();
-        alojamiento1.put("id", 1);
-        alojamiento1.put("titulo", "Casa Campestre La Calera");
-        alojamiento1.put("ciudad", "La Calera");
-        alojamiento1.put("precio", 150000);
-        alojamiento1.put("estado", "ACTIVO");
-        alojamiento1.put("totalReservas", 15);
-        alojamiento1.put("calificacionPromedio", 4.5);
-        alojamiento1.put("imagenPrincipal", "casa1.jpg");
-        alojamiento1.put("fechaCreacion", "2023-05-15");
-        alojamiento1.put("ultimaActualizacion", "2024-01-10");
-
-        Map<String, Object> alojamiento2 = new HashMap<>();
-        alojamiento2.put("id", 2);
-        alojamiento2.put("titulo", "Apartamento Moderno Centro");
-        alojamiento2.put("ciudad", "Bogotá");
-        alojamiento2.put("precio", 120000);
-        alojamiento2.put("estado", "ACTIVO");
-        alojamiento2.put("totalReservas", 8);
-        alojamiento2.put("calificacionPromedio", 4.2);
-        alojamiento2.put("imagenPrincipal", "apto1.jpg");
-        alojamiento2.put("fechaCreacion", "2023-08-20");
-        alojamiento2.put("ultimaActualizacion", "2024-01-05");
-
-        Map<String, Object> alojamiento3 = new HashMap<>();
-        alojamiento3.put("id", 3);
-        alojamiento3.put("titulo", "Finca en Guatapé");
-        alojamiento3.put("ciudad", "Guatapé");
-        alojamiento3.put("precio", 200000);
-        alojamiento3.put("estado", "INACTIVO");
-        alojamiento3.put("totalReservas", 3);
-        alojamiento3.put("calificacionPromedio", 4.8);
-        alojamiento3.put("imagenPrincipal", "finca1.jpg");
-        alojamiento3.put("fechaCreacion", "2023-12-01");
-        alojamiento3.put("ultimaActualizacion", "2024-01-15");
-
-        Map<String, Object> resumen = new HashMap<>();
-        resumen.put("totalAlojamientos", 3);
-        resumen.put("activos", 2);
-        resumen.put("inactivos", 1);
-        resumen.put("eliminados", 0);
-
-        Map<String, Object> paginacion = new HashMap<>();
-        paginacion.put("page", page);
-        paginacion.put("size", size);
-        paginacion.put("totalElementos", 3);
-        paginacion.put("totalPaginas", 1);
-
         Map<String, Object> response = new HashMap<>();
-        response.put("alojamientos", List.of(alojamiento1, alojamiento2, alojamiento3));
-        response.put("resumen", resumen);
-        response.put("filtros", Map.of("estado", estado));
-        response.put("paginacion", paginacion);
-        return ResponseEntity.ok(response);
+        try {
+            // Como antes, usamos un ID de anfitrión fijo para probar.
+            Long anfitrionId = 1L;
+
+            // Llamamos a nuestro nuevo método del servicio.
+            List<AlojamientoSummaryDTO> misAlojamientos = alojamientoService.listarAlojamientosPorAnfitrion(anfitrionId);
+
+            response.put("alojamientos", misAlojamientos);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+
+        } catch (Exception e) {
+            response.put("error", e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PutMapping("/{id}")

@@ -4,6 +4,8 @@ package uniquindio.edu.co.Proyecto_Avanzada.negocio.service;
 
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Alojamiento.AlojamientoCreateDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Alojamiento.AlojamientoDTO;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Alojamiento.AlojamientoSummaryDTO;
+import java.util.List;
 
 public interface AlojamientoService {
 
@@ -15,5 +17,12 @@ public interface AlojamientoService {
      * @throws Exception Si el anfitrión no existe o hay un error de validación.
      */
     AlojamientoDTO crearAlojamiento(AlojamientoCreateDTO alojamientoCreateDTO, Long anfitrionId) throws Exception;
+
+    /**
+     * Lista todos los alojamientos de un anfitrión específico.
+     * @param anfitrionId El ID del anfitrión.
+     * @return Una lista con la información resumida de cada alojamiento.
+     */
+    List<AlojamientoSummaryDTO> listarAlojamientosPorAnfitrion(Long anfitrionId);
 
 }
