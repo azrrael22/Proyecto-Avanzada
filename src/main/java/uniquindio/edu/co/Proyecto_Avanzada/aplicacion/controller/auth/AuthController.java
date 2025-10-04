@@ -7,6 +7,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Usuario.UsuarioCreateDTO;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.service.UsuarioService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,42 +20,33 @@ import java.util.Map;
 @Tag(name = "Autenticación", description = "Registro, login y recuperación de contraseña")
 public class AuthController {
 
+    @Autowired
+    private UsuarioService usuarioService; // ¡Inyectamos nuestro nuevo servicio!
+
     @PostMapping("/registro")
     @Operation(summary = "Registrar nuevo usuario", description = "HU-V003: Registro de usuario en el sistema")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Usuario registrado exitosamente"),
-            @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos"),
-            @ApiResponse(responseCode = "409", description = "Email ya registrado en el sistema")
+            // ... (ApiResponses existentes)
     })
     public ResponseEntity<Map<String, Object>> registro(
-            @Parameter(description = "Nombre completo del usuario", required = true, example = "Juan Pérez")
-            @RequestParam String nombre,
-
-            @Parameter(description = "Email único del usuario", required = true, example = "juan.perez@email.com")
-            @RequestParam String email,
-
-            @Parameter(description = "Contraseña (mínimo 8 caracteres con mayúsculas y números)", required = true)
-            @RequestParam String password,
-
-            @Parameter(description = "Número de teléfono", example = "+57300123456")
-            @RequestParam(required = false) String telefono,
-
-            @Parameter(description = "Fecha de nacimiento en formato YYYY-MM-DD", example = "1990-05-15")
-            @RequestParam(required = false) String fechaNacimiento
+            // Para simplificar, asumimos que recibimos el DTO completo
+            @RequestBody UsuarioCreateDTO usuarioCreateDTO
     ) {
-        Map<String, Object> usuario = new HashMap<>();
-        usuario.put("id", 1);
-        usuario.put("nombre", nombre);
-        usuario.put("email", email);
-        usuario.put("rol", "USUARIO");
-        usuario.put("estado", "ACTIVO");
-        usuario.put("fechaRegistro", java.time.LocalDateTime.now().toString());
-
         Map<String, Object> response = new HashMap<>();
-        response.put("message", "Usuario registrado exitosamente");
-        response.put("usuario", usuario);
+        try {
+            // 1. Llamamos a nuestro servicio para que haga todo el trabajo
+            var usuarioRegistrado = usuarioService.registrarUsuario(usuarioCreateDTO);
 
-        return ResponseEntity.status(201).body(response);
+            // 2. Preparamos una respuesta exitosa
+            response.put("message", "Usuario registrado exitosamente");
+            response.put("usuario", usuarioRegistrado);
+            return new ResponseEntity<>(response, HttpStatus.CREATED); // Código 201
+
+        } catch (Exception e) {
+            // 3. Si el servicio lanza un error (ej: email duplicado), lo capturamos
+            response.put("error", e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.CONFLICT); // Código 409
+        }
     }
 
     @PostMapping("/login")
