@@ -168,39 +168,53 @@ public class AlojamientoController {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{id}")
-    @Operation(summary = "Eliminar alojamiento",
-            description = "HU-A002: Eliminación lógica si NO hay reservas futuras")
+    @DeleteMapping("/{alojamientoId}")
+    @Operation(summary = "Eliminar alojamiento", description = "HU-A002: Eliminación lógica si NO hay reservas futuras")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Alojamiento eliminado exitosamente"),
-            @ApiResponse(responseCode = "404", description = "Alojamiento no encontrado o no es tuyo"),
-            @ApiResponse(responseCode = "409", description = "No se puede eliminar con reservas futuras activas")
+            @ApiResponse(responseCode = "404", description = "Alojamiento no encontrado"),
+            @ApiResponse(responseCode = "403", description = "No tienes permiso para eliminar"),
+            @ApiResponse(responseCode = "409", description = "Conflicto: El alojamiento tiene reservas futuras")
     })
     public ResponseEntity<Map<String, Object>> eliminarAlojamiento(
-            @Parameter(description = "ID del alojamiento", required = true)
-            @PathVariable Long id,
-
-            @Parameter(description = "Confirmación de eliminación", required = true)
+            @PathVariable Long alojamientoId,
+            @Parameter(description = "Confirmación requerida para eliminar", required = true)
             @RequestParam boolean confirmar
     ) {
-        Map<String, Object> alojamiento = new HashMap<>();
-        alojamiento.put("id", id);
-        alojamiento.put("titulo", "Casa Campestre La Calera");
-        alojamiento.put("estadoAnterior", "ACTIVO");
-        alojamiento.put("nuevoEstado", "ELIMINADO");
-        alojamiento.put("fechaEliminacion", java.time.LocalDateTime.now().toString());
-
         Map<String, Object> response = new HashMap<>();
-        response.put("message", "Alojamiento eliminado exitosamente");
-        response.put("alojamiento", alojamiento);
-        response.put("efectos", List.of(
-                "El alojamiento no aparecerá en búsquedas",
-                "No se pueden crear nuevas reservas",
-                "Los datos se conservan para históricos",
-                "Esta acción es irreversible"
-        ));
 
-        return ResponseEntity.ok(response);
+        if (!confirmar) {
+            response.put("error", "La confirmación es requerida para eliminar.");
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+
+        try {
+            // ID del anfitrión fijo para pruebas.
+            Long anfitrionId = 1L;
+
+            alojamientoService.eliminarAlojamiento(alojamientoId, anfitrionId);
+
+            response.put("message", "Alojamiento eliminado exitosamente");
+            return new ResponseEntity<>(response, HttpStatus.OK);
+
+        } catch (Exception e) {
+            // Manejo de errores específicos
+            if (e.getMessage().contains("reservas futuras")) {
+                response.put("error", e.getMessage());
+                return new ResponseEntity<>(response, HttpStatus.CONFLICT); // 409 Conflicto
+            }
+            if (e.getMessage().contains("No tienes permiso")) {
+                response.put("error", e.getMessage());
+                return new ResponseEntity<>(response, HttpStatus.FORBIDDEN); // 403 Prohibido
+            }
+            if (e.getMessage().contains("no fue encontrado")) {
+                response.put("error", e.getMessage());
+                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND); // 404 No Encontrado
+            }
+            // Error genérico
+            response.put("error", "Ocurrió un error inesperado: " + e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PostMapping("/{id}/imagenes")

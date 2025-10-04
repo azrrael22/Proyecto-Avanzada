@@ -13,6 +13,8 @@ import uniquindio.edu.co.Proyecto_Avanzada.persistencia.repository.AlojamientoRe
 import uniquindio.edu.co.Proyecto_Avanzada.persistencia.repository.UsuarioRepository;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Alojamiento.AlojamientoSummaryDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Alojamiento.AlojamientoUpdateDTO;
+import uniquindio.edu.co.Proyecto_Avanzada.persistencia.repository.ReservaRepository;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.enums.EstadoAlojamiento;
 import java.util.List;
 
 @Service
@@ -26,6 +28,9 @@ public class AlojamientoServiceImpl implements AlojamientoService {
 
     @Autowired
     private AlojamientoMapper alojamientoMapper; // Convertidor de DTO a Entidad [cite: 3294]
+
+    @Autowired
+    private ReservaRepository reservaRepository; //DAO de Reservas
 
     @Override
     public AlojamientoDTO crearAlojamiento(AlojamientoCreateDTO alojamientoCreateDTO, Long anfitrionId) throws Exception {
@@ -48,12 +53,16 @@ public class AlojamientoServiceImpl implements AlojamientoService {
 
     @Override
     public List<AlojamientoSummaryDTO> listarAlojamientosPorAnfitrion(Long anfitrionId) {
-        // 1. Usamos el repositorio para buscar en la BD todos los alojamientos
-        //    cuyo anfitrión tenga el ID que nos pasaron.
-        List<AlojamientoEntity> alojamientos = alojamientoRepository.findByAnfitrion_Id(anfitrionId);
+        // ANTES: Buscábamos todos sin filtrar.
+        // List<AlojamientoEntity> alojamientos = alojamientoRepository.findByAnfitrion_Id(anfitrionId);
 
-        // 2. Usamos el mapper para convertir la lista de entidades (de la BD)
-        //    a una lista de DTOs resumidos (para la respuesta).
+        // AHORA: Usamos el nuevo método para excluir los eliminados.
+        List<AlojamientoEntity> alojamientos = alojamientoRepository.findByAnfitrion_IdAndEstadoNot(
+                anfitrionId,
+                EstadoAlojamiento.ELIMINADO
+        );
+
+        // El resto del método no cambia.
         return alojamientoMapper.toSummaryDTOList(alojamientos);
     }
 
@@ -78,5 +87,30 @@ public class AlojamientoServiceImpl implements AlojamientoService {
 
         // 5. Convertimos la entidad final a un DTO y la retornamos.
         return alojamientoMapper.toDTO(alojamientoActualizado);
+    }
+
+    @Override
+    public void eliminarAlojamiento(Long alojamientoId, Long anfitrionId) throws Exception {
+        // 1. Buscamos el alojamiento que se quiere eliminar.
+        AlojamientoEntity alojamiento = alojamientoRepository.findById(alojamientoId)
+                .orElseThrow(() -> new Exception("El alojamiento con ID " + alojamientoId + " no fue encontrado."));
+
+        // 2. Verificamos que quien lo intenta borrar sea el dueño.
+        if (!alojamiento.getAnfitrion().getId().equals(anfitrionId)) {
+            throw new Exception("No tienes permiso para eliminar este alojamiento.");
+        }
+
+        // 3. Verificamos la regla de negocio: ¿Tiene reservas futuras?
+        //    Usamos el método que ya existía en el ReservaRepository.
+        if (reservaRepository.hasFutureReservations(alojamientoId)) {
+            throw new Exception("No se puede eliminar un alojamiento con reservas futuras activas.");
+        }
+
+        // 4. Si pasa todas las validaciones, realizamos el borrado lógico.
+        //    No lo borramos de la BD, solo cambiamos su estado.
+        alojamiento.setEstado(EstadoAlojamiento.ELIMINADO);
+
+        // 5. Guardamos el cambio en la base de datos.
+        alojamientoRepository.save(alojamiento);
     }
 }

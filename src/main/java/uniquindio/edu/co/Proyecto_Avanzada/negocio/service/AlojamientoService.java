@@ -36,4 +36,12 @@ public interface AlojamientoService {
      */
     AlojamientoDTO actualizarAlojamiento(Long alojamientoId, AlojamientoUpdateDTO alojamientoUpdateDTO, Long anfitrionId) throws Exception;
 
+    /**
+     * Realiza un borrado lógico (soft delete) de un alojamiento.
+     * @param alojamientoId El ID del alojamiento a eliminar.
+     * @param anfitrionId El ID del anfitrión que realiza la acción.
+     * @throws Exception Si el alojamiento no existe, no pertenece al anfitrión o tiene reservas futuras.
+     */
+    void eliminarAlojamiento(Long alojamientoId, Long anfitrionId) throws Exception;
+
 }

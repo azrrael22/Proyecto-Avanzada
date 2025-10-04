@@ -9,7 +9,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.enums.EstadoAlojamiento;
+import java.util.List;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -23,6 +24,11 @@ public interface AlojamientoRepository extends JpaRepository<AlojamientoEntity, 
      * Buscar alojamientos por anfitrión
      */
     List<AlojamientoEntity> findByAnfitrion_Id(Long anfitrionId);
+
+    /**
+     * Busca todos los alojamientos de un anfitrión específico que NO tengan un estado determinado.
+     */
+    List<AlojamientoEntity> findByAnfitrion_IdAndEstadoNot(Long anfitrionId, EstadoAlojamiento estado);
 
     /**
      * Buscar alojamientos por anfitrión con paginación
