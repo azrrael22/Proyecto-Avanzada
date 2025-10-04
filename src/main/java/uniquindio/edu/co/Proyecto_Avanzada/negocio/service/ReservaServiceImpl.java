@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Reserva.ReservaCreateDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Reserva.ReservaDTO;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.enums.EstadoReserva;
 import uniquindio.edu.co.Proyecto_Avanzada.persistencia.entity.AlojamientoEntity;
 import uniquindio.edu.co.Proyecto_Avanzada.persistencia.entity.ReservaEntity;
 import uniquindio.edu.co.Proyecto_Avanzada.persistencia.entity.UsuarioEntity;
@@ -16,6 +17,7 @@ import uniquindio.edu.co.Proyecto_Avanzada.persistencia.repository.ReservaReposi
 import uniquindio.edu.co.Proyecto_Avanzada.persistencia.repository.UsuarioRepository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
@@ -92,5 +94,34 @@ public class ReservaServiceImpl implements ReservaService {
 
         // 2. Las convertimos a una lista de DTOs y las retornamos.
         return reservaMapper.toDTOList(reservas);
+    }
+
+    @Override
+    public void cancelarReserva(Long reservaId, Long usuarioId) throws Exception {
+        // 1. Buscamos la reserva en la base de datos.
+        ReservaEntity reserva = reservaRepository.findById(reservaId)
+                .orElseThrow(() -> new Exception("La reserva con ID " + reservaId + " no existe."));
+
+        // 2. Validamos que el usuario que cancela sea el dueño de la reserva.
+        if (!reserva.getUsuario().getId().equals(usuarioId)) {
+            throw new Exception("No tienes permiso para cancelar esta reserva.");
+        }
+
+        // 3. Validamos que la reserva esté en un estado que permita su cancelación.
+        if (reserva.getEstado() != EstadoReserva.PENDIENTE && reserva.getEstado() != EstadoReserva.CONFIRMADA) {
+            throw new Exception("Esta reserva no se puede cancelar porque ya está " + reserva.getEstado().toString().toLowerCase() + ".");
+        }
+
+        // 4. Regla de Negocio: No se puede cancelar con menos de 48 horas de anticipación.
+        if (reserva.getFechaCheckIn().isBefore(LocalDate.now().plusDays(2))) {
+            throw new Exception("No se puede cancelar una reserva con menos de 48 horas de anticipación.");
+        }
+
+        // 5. Si todas las validaciones pasan, actualizamos el estado y la fecha de cancelación.
+        reserva.setEstado(EstadoReserva.CANCELADA);
+        reserva.setFechaCancelacion(LocalDateTime.now());
+
+        // 6. Guardamos los cambios en la base de datos.
+        reservaRepository.save(reserva);
     }
 }

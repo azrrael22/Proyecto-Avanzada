@@ -25,4 +25,12 @@ public interface ReservaService {
      */
     List<ReservaDTO> listarReservasPorUsuario(Long usuarioId);
 
+    /**
+     * Cancela una reserva, validando permisos y la regla de las 48 horas.
+     * @param reservaId ID de la reserva a cancelar.
+     * @param usuarioId ID del usuario que solicita la cancelación.
+     * @throws Exception Si la reserva no existe, no pertenece al usuario o no se puede cancelar.
+     */
+    void cancelarReserva(Long reservaId, Long usuarioId) throws Exception;
+
 }

@@ -137,9 +137,9 @@ public class ReservaController {
     @Operation(summary = "Cancelar reserva", description = "HU-U006: Cancelación con validación de 48 horas y políticas de reembolso")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Reserva cancelada exitosamente"),
-            @ApiResponse(responseCode = "400", description = "No se puede cancelar (menos de 48 horas)"),
+            @ApiResponse(responseCode = "400", description = "No se puede cancelar"),
             @ApiResponse(responseCode = "404", description = "Reserva no encontrada"),
-            @ApiResponse(responseCode = "409", description = "Reserva ya está cancelada o completada")
+            @ApiResponse(responseCode = "403", description = "No tienes permiso para cancelar esta reserva")
     })
     public ResponseEntity<Map<String, Object>> cancelarReserva(
             @Parameter(description = "ID de la reserva a cancelar", required = true)
@@ -147,30 +147,21 @@ public class ReservaController {
             @Parameter(description = "Motivo de la cancelación")
             @RequestParam(required = false) String motivo
     ) {
-        // Crear data de la reserva cancelada
-        Map<String, Object> reservaData = new HashMap<>();
-        reservaData.put("id", id);
-        reservaData.put("estadoAnterior", "CONFIRMADA");
-        reservaData.put("nuevoEstado", "CANCELADA");
-        reservaData.put("fechaCancelacion", java.time.LocalDateTime.now().toString());
-        reservaData.put("motivoCancelacion", motivo != null ? motivo : "No especificado");
-        // Crear data del reembolso
-        Map<String, Object> reembolsoData = new HashMap<>();
-        reembolsoData.put("aplica", true);
-        reembolsoData.put("porcentaje", 80);
-        reembolsoData.put("monto", 240000);
-        reembolsoData.put("tiempoEstimado", "5-7 días hábiles");
-        reembolsoData.put("metodo", "Mismo método de pago utilizado");
-        // Crear respuesta completa
         Map<String, Object> response = new HashMap<>();
-        response.put("message", "Reserva cancelada exitosamente");
-        response.put("reserva", reservaData);
-        response.put("reembolso", reembolsoData);
-        response.put("politicas", List.of(
-                "Cancelación con más de 48 horas: 80% de reembolso",
-                "El anfitrión ha sido notificado automáticamente",
-                "Recibirás confirmación por email"
-        ));
-        return ResponseEntity.ok(response);
+        try {
+            // ID de usuario fijo para probar
+            Long usuarioId = 1L;
+
+            reservaService.cancelarReserva(id, usuarioId);
+
+            response.put("message", "Reserva cancelada exitosamente");
+            // Aquí se podría añadir la lógica de reembolso si se desea.
+            return new ResponseEntity<>(response, HttpStatus.OK);
+
+        } catch (Exception e) {
+            response.put("error", e.getMessage());
+            // Podríamos usar diferentes códigos de estado según el error, pero 400 es un buen genérico.
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
     }
 }
