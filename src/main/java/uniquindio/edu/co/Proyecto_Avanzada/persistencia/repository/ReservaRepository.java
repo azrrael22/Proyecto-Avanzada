@@ -137,10 +137,11 @@ public interface ReservaRepository extends JpaRepository<ReservaEntity, Long> {
     /**
      * Buscar reserva para cancelar (con validaciones)
      */
+    // Código Corregido
     @Query("SELECT r FROM ReservaEntity r WHERE r.id = :reservaId " +
             "AND r.usuario.id = :usuarioId " +
             "AND r.estado IN ('PENDIENTE', 'CONFIRMADA') " +
-            "AND r.fechaCheckIn > CURRENT_DATE + 2")
+            "AND r.fechaCheckIn > FUNCTION('DATE_ADD', CURRENT_DATE, 2)") // <-- ESTA ES LA FORMA CORRECTA
     Optional<ReservaEntity> findCancellableReservation(@Param("reservaId") Long reservaId,
                                                        @Param("usuarioId") Long usuarioId);
 

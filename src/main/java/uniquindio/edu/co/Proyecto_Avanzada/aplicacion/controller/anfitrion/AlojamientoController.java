@@ -6,8 +6,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Alojamiento.AlojamientoCreateDTO;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.service.AlojamientoService;
 
 import java.util.HashMap;
 import java.util.List;
@@ -19,68 +23,38 @@ import java.util.Map;
 @SecurityRequirement(name = "Bearer Authentication")
 public class AlojamientoController {
 
+    @Autowired
+    private AlojamientoService alojamientoService;
+
     @PostMapping
-    @Operation(summary = "Crear nuevo alojamiento",
-            description = "HU-A001: Crear alojamiento con información completa, servicios e imágenes")
+    @Operation(summary = "Crear nuevo alojamiento", description = "HU-A001: Crear alojamiento con información completa, servicios e imágenes")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Alojamiento creado exitosamente"),
-            @ApiResponse(responseCode = "400", description = "Datos inválidos (precio ≤ 0, capacidad ≤ 0)"),
+            @ApiResponse(responseCode = "400", description = "Datos inválidos (precio <=0, capacidad <=0)"),
             @ApiResponse(responseCode = "401", description = "Usuario no autenticado"),
             @ApiResponse(responseCode = "403", description = "Usuario no es anfitrión")
     })
-    public ResponseEntity<Map<String, Object>> crearAlojamiento(
-            @Parameter(description = "Título del alojamiento", required = true, example = "Casa Campestre en La Calera")
-            @RequestParam String titulo,
-
-            @Parameter(description = "Descripción detallada", required = true)
-            @RequestParam String descripcion,
-
-            @Parameter(description = "Ciudad", required = true, example = "La Calera")
-            @RequestParam String ciudad,
-
-            @Parameter(description = "Dirección completa", required = true)
-            @RequestParam String direccion,
-
-            @Parameter(description = "Precio por noche (debe ser > 0)", required = true, example = "150000")
-            @RequestParam Double precio,
-
-            @Parameter(description = "Capacidad máxima (debe ser > 0)", required = true, example = "6")
-            @RequestParam Integer capacidad,
-
-            @Parameter(description = "Tipo: CASA, APARTAMENTO, FINCA", required = true, example = "CASA")
-            @RequestParam String tipo,
-
-            @Parameter(description = "Servicios disponibles separados por coma", example = "WiFi,Piscina,Parqueadero")
-            @RequestParam(required = false) String servicios
-    ) {
-        Map<String, Object> alojamientoData = new HashMap<>();
-        alojamientoData.put("id", 1);
-        alojamientoData.put("titulo", titulo);
-        alojamientoData.put("descripcion", descripcion);
-        alojamientoData.put("ciudad", ciudad);
-        alojamientoData.put("direccion", direccion);
-        alojamientoData.put("precio", precio);
-        alojamientoData.put("capacidad", capacidad);
-        alojamientoData.put("tipo", tipo);
-        alojamientoData.put("servicios", servicios != null ? List.of(servicios.split(",")) : List.of());
-        alojamientoData.put("estado", "ACTIVO");
-        alojamientoData.put("fechaCreacion", java.time.LocalDateTime.now().toString());
-
+    public ResponseEntity<Map<String, Object>> crearAlojamiento(@RequestBody AlojamientoCreateDTO alojamientoCreateDTO) {
         Map<String, Object> response = new HashMap<>();
-        response.put("message", "Alojamiento creado exitosamente");
-        response.put("alojamiento", alojamientoData);
-        response.put("siguientesPasos", List.of(
-                "Sube entre 1 y 10 imágenes",
-                "Una imagen debe ser marcada como principal",
-                "Tu alojamiento estará visible para huéspedes inmediatamente"
-        ));
+        try {
+            // NOTA: El ID del anfitrión se debería extraer del token de autenticación.
+            // Por ahora, para probar, usamos un ID fijo.
+            Long anfitrionId = 1L;
 
-        return ResponseEntity.status(201).body(response);
+            var alojamientoCreado = alojamientoService.crearAlojamiento(alojamientoCreateDTO, anfitrionId);
+
+            response.put("message", "Alojamiento creado exitosamente");
+            response.put("alojamiento", alojamientoCreado);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+
+        } catch (Exception e) {
+            response.put("error", e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
     }
 
     @GetMapping
-    @Operation(summary = "Gestionar mis alojamientos",
-            description = "HU-A002: Ver lista de todos mis alojamientos con métricas básicas")
+    @Operation(summary = "Gestionar mis alojamientos", description = "HU-A002: Ver lista de todos mis alojamientos con métricas básicas")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista obtenida exitosamente"),
             @ApiResponse(responseCode = "401", description = "Usuario no autenticado"),
@@ -89,10 +63,8 @@ public class AlojamientoController {
     public ResponseEntity<Map<String, Object>> gestionarMisAlojamientos(
             @Parameter(description = "Filtro por estado: ACTIVO, INACTIVO, ELIMINADO")
             @RequestParam(required = false) String estado,
-
             @Parameter(description = "Página (0-based)", example = "0")
             @RequestParam(defaultValue = "0") int page,
-
             @Parameter(description = "Tamaño de página", example = "10")
             @RequestParam(defaultValue = "10") int size
     ) {
@@ -149,56 +121,6 @@ public class AlojamientoController {
         response.put("resumen", resumen);
         response.put("filtros", Map.of("estado", estado));
         response.put("paginacion", paginacion);
-
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/{id}")
-    @Operation(summary = "Ver detalles de mi alojamiento",
-            description = "Información completa de un alojamiento específico del anfitrión")
-    public ResponseEntity<Map<String, Object>> verDetalleAlojamiento(
-            @Parameter(description = "ID del alojamiento", required = true)
-            @PathVariable Long id
-    ) {
-        Map<String, Object> alojamiento = new HashMap<>();
-        alojamiento.put("id", id);
-        alojamiento.put("titulo", "Casa Campestre La Calera");
-        alojamiento.put("descripcion", "Hermosa casa con vista panorámica a los cerros orientales");
-        alojamiento.put("ciudad", "La Calera");
-        alojamiento.put("direccion", "Vereda Alto del Águila, Km 2");
-        alojamiento.put("precio", 150000);
-        alojamiento.put("capacidad", 6);
-        alojamiento.put("tipo", "CASA");
-        alojamiento.put("estado", "ACTIVO");
-        alojamiento.put("fechaCreacion", "2023-05-15T10:30:00");
-        alojamiento.put("fechaActualizacion", "2024-01-10T14:20:00");
-
-        Map<String, Object> imagen1 = new HashMap<>();
-        imagen1.put("id", 1);
-        imagen1.put("url", "casa1_principal.jpg");
-        imagen1.put("esPrincipal", true);
-        imagen1.put("orden", 1);
-
-        Map<String, Object> imagen2 = new HashMap<>();
-        imagen2.put("id", 2);
-        imagen2.put("url", "casa1_salon.jpg");
-        imagen2.put("esPrincipal", false);
-        imagen2.put("orden", 2);
-
-        Map<String, Object> estadisticas = new HashMap<>();
-        estadisticas.put("totalReservas", 15);
-        estadisticas.put("totalHuespedes", 45);
-        estadisticas.put("calificacionPromedio", 4.5);
-        estadisticas.put("totalComentarios", 12);
-        estadisticas.put("ingresosTotales", 2250000);
-        estadisticas.put("ocupacionUltimoMes", 75.5);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("alojamiento", alojamiento);
-        response.put("servicios", List.of("WiFi", "Piscina", "Parqueadero", "Asador", "Chimenea"));
-        response.put("imagenes", List.of(imagen1, imagen2));
-        response.put("estadisticas", estadisticas);
-
         return ResponseEntity.ok(response);
     }
 
