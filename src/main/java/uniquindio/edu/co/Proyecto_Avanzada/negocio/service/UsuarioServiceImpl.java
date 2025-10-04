@@ -11,6 +11,8 @@ import uniquindio.edu.co.Proyecto_Avanzada.persistencia.repository.UsuarioReposi
 import uniquindio.edu.co.Proyecto_Avanzada.persistencia.mapper.UsuarioMapper;
 import uniquindio.edu.co.Proyecto_Avanzada.persistencia.repository.RolRepository;
 import uniquindio.edu.co.Proyecto_Avanzada.persistencia.entity.RolEntity;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Autenticacion.LoginRequestDTO;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Autenticacion.LoginResponseDTO;
 
 @Service
 public class UsuarioServiceImpl implements UsuarioService {
@@ -53,5 +55,39 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         // 6. Convertir la entidad guardada a un DTO de respuesta y devolverlo
         return usuarioMapper.toDTO(usuarioGuardado);
+    }
+
+    @Override
+    public LoginResponseDTO login(LoginRequestDTO loginRequestDTO) throws Exception {
+        // 1. Buscar al usuario por su email en la base de datos
+        UsuarioEntity usuario = usuarioRepository.findByEmail(loginRequestDTO.getEmail())
+                .orElseThrow(() -> new Exception("El correo o la contraseña son incorrectos."));
+
+        // 2. (IMPORTANTE) Validar la contraseña
+        // En un proyecto real, la contraseña de la BD está encriptada.
+        // Se usaría un PasswordEncoder para compararlas:
+        // if (!passwordEncoder.matches(loginRequestDTO.getPassword(), usuario.getContraseniaHash())) {
+        //     throw new Exception("El correo o la contraseña son incorrectos.");
+        // }
+        // Para este avance, haremos una comparación simple de texto:
+        if (!loginRequestDTO.getPassword().equals(usuario.getContraseniaHash())) {
+            throw new Exception("El correo o la contraseña son incorrectos.");
+        }
+
+        // 3. (IMPORTANTE) Generar un Token JWT (JSON Web Token)
+        // La generación del token es un proceso más complejo que requiere una librería y configuración.
+        // Para este avance, simularemos un token. Más adelante lo podrás reemplazar.
+        String token = "TOKEN_JWT_SIMULADO_PARA_" + usuario.getEmail();
+
+        // 4. Convertir la entidad del usuario a un DTO para la respuesta
+        UsuarioDTO usuarioDTO = usuarioMapper.toDTO(usuario);
+
+        // 5. Construir y devolver la respuesta de login
+        return LoginResponseDTO.builder()
+                .token(token)
+                .tipo("Bearer")
+                .expira(3600) // 1 hora de validez (en segundos)
+                .usuario(usuarioDTO)
+                .build();
     }
 }

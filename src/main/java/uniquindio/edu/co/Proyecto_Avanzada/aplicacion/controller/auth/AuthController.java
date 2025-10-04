@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Usuario.UsuarioCreateDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.service.UsuarioService;
-
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Autenticacion.LoginRequestDTO;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -52,31 +52,20 @@ public class AuthController {
     @PostMapping("/login")
     @Operation(summary = "Iniciar sesión", description = "HU-U001: Autenticación de usuario registrado")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Login exitoso, token JWT generado"),
-            @ApiResponse(responseCode = "401", description = "Credenciales inválidas"),
-            @ApiResponse(responseCode = "423", description = "Cuenta desactivada por administrador")
+            // ... (ApiResponses existentes)
     })
-    public ResponseEntity<Map<String, Object>> login(
-            @Parameter(description = "Email del usuario registrado", required = true, example = "juan.perez@email.com")
-            @RequestParam String email,
-
-            @Parameter(description = "Contraseña del usuario", required = true)
-            @RequestParam String password
-    ) {
-        Map<String, Object> usuario = new HashMap<>();
-        usuario.put("id", 1);
-        usuario.put("nombre", "Juan Pérez");
-        usuario.put("email", email);
-        usuario.put("rol", "USUARIO");
-        usuario.put("fechaUltimoAcceso", java.time.LocalDateTime.now().toString());
-
+    public ResponseEntity<?> login(@RequestBody LoginRequestDTO loginRequestDTO) {
         Map<String, Object> response = new HashMap<>();
-        response.put("token", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.example");
-        response.put("tipo", "Bearer");
-        response.put("expira", 3600);
-        response.put("usuario", usuario);
+        try {
+            // 1. Llamamos a nuestro servicio de login
+            var loginResponse = usuarioService.login(loginRequestDTO);
+            return new ResponseEntity<>(loginResponse, HttpStatus.OK); // Código 200
 
-        return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            // 2. Si las credenciales son inválidas, devolvemos un error
+            response.put("error", e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED); // Código 401
+        }
     }
 
     @PostMapping("/recovery")
