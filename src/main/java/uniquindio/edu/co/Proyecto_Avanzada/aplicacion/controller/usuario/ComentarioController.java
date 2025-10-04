@@ -6,8 +6,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Comentario.ComentarioCreateDTO;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Comentario.ComentarioDTO;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.service.ComentarioService;
 
 import java.util.HashMap;
 import java.util.List;
@@ -19,6 +24,9 @@ import java.util.Map;
 @SecurityRequirement(name = "Bearer Authentication")
 public class ComentarioController {
 
+    @Autowired
+    private ComentarioService comentarioService;
+
     @PostMapping
     @Operation(summary = "Dejar comentario y calificación",
             description = "HU-U008: Comentar y calificar reserva completada (solo una vez por reserva)")
@@ -29,40 +37,23 @@ public class ComentarioController {
             @ApiResponse(responseCode = "409", description = "Ya comentaste esta reserva o reserva no completada"),
             @ApiResponse(responseCode = "422", description = "Solo puedes comentar reservas completadas")
     })
-    public ResponseEntity<Map<String, Object>> dejarComentario(
-            @Parameter(description = "ID de la reserva completada", required = true, example = "1")
-            @RequestParam Long reservaId,
-
-            @Parameter(description = "Calificación de 1 a 5 estrellas", required = true, example = "5")
-            @RequestParam Integer calificacion,
-
-            @Parameter(description = "Comentario opcional (máximo 500 caracteres)", example = "Excelente lugar, muy recomendado")
-            @RequestParam(required = false) String comentario
-    ) {
-        Map<String, Object> reserva = new HashMap<>();
-        reserva.put("id", reservaId);
-        reserva.put("alojamiento", "Casa Campestre La Calera");
-        reserva.put("fechaEstadia", "2024-01-15 a 2024-01-17");
-
-        Map<String, Object> comentarioData = new HashMap<>();
-        comentarioData.put("id", 1);
-        comentarioData.put("reserva", reserva);
-        comentarioData.put("calificacion", calificacion);
-        comentarioData.put("comentario", comentario != null ? comentario : "");
-        comentarioData.put("fecha", java.time.LocalDateTime.now().toString());
-        comentarioData.put("usuario", "Juan Pérez");
-
-        Map<String, Object> impacto = new HashMap<>();
-        impacto.put("nuevoPromedio", 4.3);
-        impacto.put("totalComentarios", 8);
-        impacto.put("ayudasOtrosViajeros", true);
-
+    public ResponseEntity<Map<String, Object>> dejarComentario(@RequestBody ComentarioCreateDTO comentarioCreateDTO) {
         Map<String, Object> response = new HashMap<>();
-        response.put("comentario", comentarioData);
-        response.put("message", "¡Gracias por tu comentario!");
-        response.put("impacto", impacto);
+        try {
+            // ID de usuario fijo para probar.
+            Long usuarioId = 1L;
 
-        return ResponseEntity.status(201).body(response);
+            ComentarioDTO comentarioCreado = comentarioService.dejarComentario(comentarioCreateDTO, usuarioId);
+
+            response.put("message", "¡Gracias por tu comentario!");
+            response.put("comentario", comentarioCreado);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+
+        } catch (Exception e) {
+            response.put("error", e.getMessage());
+            // 409 Conflict es un buen código si la reserva ya fue comentada o no está completada.
+            return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+        }
     }
 
     @GetMapping("/mis-comentarios")
