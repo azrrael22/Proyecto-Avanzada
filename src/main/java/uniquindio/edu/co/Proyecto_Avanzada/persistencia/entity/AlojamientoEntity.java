@@ -1,10 +1,7 @@
 package uniquindio.edu.co.Proyecto_Avanzada.persistencia.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.Builder;
+import lombok.*;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.enums.TipoAlojamiento;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.enums.EstadoAlojamiento;
 import uniquindio.edu.co.Proyecto_Avanzada.persistencia.converter.ServiciosConverter;
@@ -18,7 +15,8 @@ import java.util.List;
  */
 @Entity
 @Table(name = "alojamientos")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -29,6 +27,8 @@ public class AlojamientoEntity {
     @Column(name = "id_alojamiento")
     private Long id;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_anfitrion", nullable = false)
     private UsuarioEntity anfitrion;
@@ -70,12 +70,18 @@ public class AlojamientoEntity {
     private LocalDateTime fechaActualizacion;
 
     // Relaciones One-to-Many
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "alojamiento", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ImagenAlojamiento> imagenes;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "alojamiento", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ReservaEntity> reservas;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "alojamiento", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ComentarioEntity> comentarios;
 

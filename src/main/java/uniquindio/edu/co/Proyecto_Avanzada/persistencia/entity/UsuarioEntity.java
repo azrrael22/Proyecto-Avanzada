@@ -1,10 +1,7 @@
 package uniquindio.edu.co.Proyecto_Avanzada.persistencia.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.Builder;
+import lombok.*;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.enums.EstadoUsuario;
 
 import java.time.LocalDate;
@@ -18,7 +15,8 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "usuarios")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -47,6 +45,8 @@ public class UsuarioEntity {
     @Column(name = "foto_perfil", length = 500)
     private String fotoPerfil;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_rol", nullable = false)
     private RolEntity rol;
@@ -62,24 +62,38 @@ public class UsuarioEntity {
     private LocalDateTime fechaUltimaActualizacion;
 
     // Relaciones One-to-Many
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "anfitrion", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<AlojamientoEntity> alojamientos;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "usuario", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ReservaEntity> reservas;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "usuario", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ComentarioEntity> comentarios;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "usuario", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<CodigoRecuperacionEntity> codigosRecuperacion;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "usuario", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<AuditoriaUsuarioEntity> auditoriaComoUsuario;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "administrador", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<AuditoriaUsuarioEntity> auditoriaComoAdmin;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "anfitrion", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<RespuestaComentarioEntity> respuestas;
 
