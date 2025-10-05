@@ -9,7 +9,9 @@ import uniquindio.edu.co.Proyecto_Avanzada.negocio.enums.EstadoUsuario;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Entidad que representa la tabla usuarios
@@ -91,4 +93,12 @@ public class UsuarioEntity {
     protected void onUpdate() {
         fechaUltimaActualizacion = LocalDateTime.now();
     }
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "favoritos",
+            joinColumns = @JoinColumn(name = "id_usuario"),
+            inverseJoinColumns = @JoinColumn(name = "id_alojamiento")
+    )
+    private Set<AlojamientoEntity> alojamientosFavoritos = new HashSet<>();
 }
