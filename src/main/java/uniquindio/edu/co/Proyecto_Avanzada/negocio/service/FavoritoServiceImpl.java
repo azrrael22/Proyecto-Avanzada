@@ -44,4 +44,22 @@ public class FavoritoServiceImpl implements FavoritoService {
 
         return alojamientoMapper.toSummaryDTOList(new ArrayList<>(usuario.getAlojamientosFavoritos()));
     }
+
+    @Override
+    @Transactional // Importante para que los cambios en la lista se guarden en la BD
+    public void quitarFavorito(Long usuarioId, Long alojamientoId) throws Exception {
+        // 1. Buscamos al usuario.
+        UsuarioEntity usuario = usuarioRepo.findById(usuarioId)
+                .orElseThrow(() -> new Exception("Usuario no encontrado"));
+
+        // 2. Buscamos el alojamiento que se va a eliminar de la lista.
+        AlojamientoEntity alojamiento = alojamientoRepo.findById(alojamientoId)
+                .orElseThrow(() -> new Exception("Alojamiento no encontrado"));
+
+        // 3. Removemos el alojamiento de la colección de favoritos del usuario.
+        //    Si el alojamiento no estaba en la lista, el método simplemente no hace nada.
+        usuario.getAlojamientosFavoritos().remove(alojamiento);
+
+        // Al finalizar el método, @Transactional se encargará de actualizar la base de datos.
+    }
 }

@@ -45,4 +45,17 @@ public class FavoritoController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
         }
     }
+
+    // ================== MÉTODO 'QUITAR DE FAVORITOS' IMPLEMENTADO ==================
+    @DeleteMapping("/{alojamientoId}")
+    @Operation(summary = "Quitar un alojamiento de favoritos")
+    public ResponseEntity<Map<String, String>> quitarFavorito(@PathVariable Long alojamientoId) {
+        try {
+            Long usuarioId = 1L; // Fijo para probar
+            favoritoService.quitarFavorito(usuarioId, alojamientoId);
+            return ResponseEntity.ok(Map.of("message", "Alojamiento eliminado de favoritos."));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
+    }
 }
