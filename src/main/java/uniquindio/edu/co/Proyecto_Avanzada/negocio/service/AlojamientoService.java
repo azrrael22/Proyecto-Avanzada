@@ -7,6 +7,7 @@ import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Alojamiento.Alojamie
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Alojamiento.AlojamientoSummaryDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Alojamiento.AlojamientoUpdateDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Auxiliares.BusquedaAlojamientosDTO;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.enums.EstadoAlojamiento;
 import java.util.List;
 
 public interface AlojamientoService {
@@ -44,6 +45,17 @@ public interface AlojamientoService {
      * @throws Exception Si el alojamiento no existe, no pertenece al anfitrión o tiene reservas futuras.
      */
     void eliminarAlojamiento(Long alojamientoId, Long anfitrionId) throws Exception;
+
+    /**
+     * Cambia el estado de un alojamiento (ACTIVO/INACTIVO).
+     * @param alojamientoId El ID del alojamiento a modificar.
+     * @param nuevoEstado El nuevo estado deseado (ACTIVO o INACTIVO).
+     * @param anfitrionId El ID del anfitrión que realiza la acción, para verificar permisos.
+     * @return El DTO del alojamiento con el estado actualizado.
+     * @throws Exception Si el alojamiento no se encuentra, no pertenece al anfitrión,
+     * o si se intenta inactivar con reservas futuras activas.
+     */
+    AlojamientoDTO cambiarEstadoAlojamiento(Long alojamientoId, EstadoAlojamiento nuevoEstado, Long anfitrionId) throws Exception;
 
     List<AlojamientoSummaryDTO> buscarAlojamientosDisponibles(BusquedaAlojamientosDTO filtros);
 

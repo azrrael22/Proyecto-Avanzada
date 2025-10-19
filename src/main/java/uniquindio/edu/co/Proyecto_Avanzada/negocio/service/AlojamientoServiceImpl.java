@@ -18,6 +18,8 @@ import uniquindio.edu.co.Proyecto_Avanzada.negocio.enums.EstadoAlojamiento;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Auxiliares.BusquedaAlojamientosDTO;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.enums.EstadoAlojamiento;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -52,6 +54,47 @@ public class AlojamientoServiceImpl implements AlojamientoService {
 
         // 5. Convertimos la entidad que acabamos de guardar a un DTO de respuesta para enviarlo de vuelta.
         return alojamientoMapper.toDTO(alojamientoGuardado);
+    }
+
+    @Override
+    public AlojamientoDTO cambiarEstadoAlojamiento(Long alojamientoId, EstadoAlojamiento nuevoEstado, Long anfitrionId) throws Exception {
+        // 1. Buscar el alojamiento
+        AlojamientoEntity alojamiento = alojamientoRepository.findById(alojamientoId)
+                .orElseThrow(() -> new Exception("Alojamiento no encontrado con ID: " + alojamientoId));
+
+        // 2. Verificar propiedad (¡Importante! Esto aún usa el ID hardcodeado como en otros métodos)
+        //    En una implementación real, anfitrionId vendría del token JWT.
+        if (!alojamiento.getAnfitrion().getId().equals(anfitrionId)) {
+            throw new Exception("No tienes permiso para modificar el estado de este alojamiento.");
+        }
+
+        // 3. Verificar si ya tiene el estado deseado (para evitar guardado innecesario)
+        if (alojamiento.getEstado() == nuevoEstado) {
+            return alojamientoMapper.toDTO(alojamiento); // Ya está en el estado correcto
+        }
+
+        // 4. Regla de negocio: No se puede inactivar si tiene reservas futuras
+        if (nuevoEstado == EstadoAlojamiento.INACTIVO) {
+            // Usamos el método que ya existía en ReservaRepository
+            boolean tieneReservasFuturas = reservaRepository.hasFutureReservations(alojamientoId);
+            if (tieneReservasFuturas) {
+                throw new Exception("No se puede inactivar un alojamiento con reservas futuras activas.");
+            }
+        }
+
+        // 5. Cambiar el estado
+        EstadoAlojamiento estadoAnterior = alojamiento.getEstado(); // Guardamos el anterior para la respuesta
+        alojamiento.setEstado(nuevoEstado);
+
+        // 6. Guardar en la base de datos
+        AlojamientoEntity alojamientoActualizado = alojamientoRepository.save(alojamiento);
+
+        // 7. Devolver el DTO actualizado (puedes ajustar el DTO si necesitas incluir el estado anterior)
+        AlojamientoDTO dtoResultado = alojamientoMapper.toDTO(alojamientoActualizado);
+        // Podríamos añadir manualmente el estado anterior si el DTO no lo tiene y lo necesitamos en la respuesta
+        // dtoResultado.setEstadoAnterior(estadoAnterior.toString()); // Ejemplo si AlojamientoDTO tuviera ese campo
+
+        return dtoResultado;
     }
 
     @Override

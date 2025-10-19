@@ -14,6 +14,7 @@ import uniquindio.edu.co.Proyecto_Avanzada.negocio.service.UsuarioService;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Autenticacion.LoginRequestDTO;
 import java.util.HashMap;
 import java.util.Map;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -26,26 +27,25 @@ public class AuthController {
     @PostMapping("/registro")
     @Operation(summary = "Registrar nuevo usuario", description = "HU-V003: Registro de usuario en el sistema")
     @ApiResponses(value = {
-            // ... (ApiResponses existentes)
+            @ApiResponse(responseCode = "201", description = "Usuario registrado exitosamente"), // Éxito
+            @ApiResponse(responseCode = "409", description = "Conflicto: El email ya está registrado"), // Email duplicado
+            @ApiResponse(responseCode = "400", description = "Solicitud inválida: Datos incompletos o formato incorrecto (ej. contraseña débil, email inválido)") // Error de validación
     })
     public ResponseEntity<Map<String, Object>> registro(
-            // Para simplificar, asumimos que recibimos el DTO completo
-            @RequestBody UsuarioCreateDTO usuarioCreateDTO
+            @Valid @RequestBody UsuarioCreateDTO usuarioCreateDTO
     ) {
         Map<String, Object> response = new HashMap<>();
         try {
-            // 1. Llamamos a nuestro servicio para que haga todo el trabajo
             var usuarioRegistrado = usuarioService.registrarUsuario(usuarioCreateDTO);
-
-            // 2. Preparamos una respuesta exitosa
             response.put("message", "Usuario registrado exitosamente");
             response.put("usuario", usuarioRegistrado);
-            return new ResponseEntity<>(response, HttpStatus.CREATED); // Código 201
-
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (Exception e) {
-            // 3. Si el servicio lanza un error (ej: email duplicado), lo capturamos
             response.put("error", e.getMessage());
-            return new ResponseEntity<>(response, HttpStatus.CONFLICT); // Código 409
+            if (e instanceof org.springframework.web.bind.MethodArgumentNotValidException) {
+                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+            }
+            return new ResponseEntity<>(response, HttpStatus.CONFLICT);
         }
     }
 

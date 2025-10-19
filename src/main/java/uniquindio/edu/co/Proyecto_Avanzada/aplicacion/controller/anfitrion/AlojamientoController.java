@@ -15,7 +15,9 @@ import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Alojamiento.Alojamie
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Alojamiento.AlojamientoSummaryDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Alojamiento.AlojamientoUpdateDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.service.AlojamientoService;
-
+import org.springframework.http.HttpStatus;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.enums.EstadoAlojamiento;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Alojamiento.AlojamientoDTO;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -132,40 +134,64 @@ public class AlojamientoController {
             description = "HU-A002: Cambiar estado de alojamiento temporalmente")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Estado actualizado exitosamente"),
-            @ApiResponse(responseCode = "404", description = "Alojamiento no encontrado o no es tuyo"),
-            @ApiResponse(responseCode = "409", description = "No se puede inactivar con reservas futuras")
+            @ApiResponse(responseCode = "404", description = "Alojamiento no encontrado o no te pertenece"),
+            @ApiResponse(responseCode = "409", description = "Conflicto: No se puede inactivar con reservas futuras"),
+            @ApiResponse(responseCode = "400", description = "Estado inválido proporcionado"),
+            @ApiResponse(responseCode = "403", description = "No tienes permiso para realizar esta acción") // Añadido para permiso
     })
     public ResponseEntity<Map<String, Object>> cambiarEstado(
             @Parameter(description = "ID del alojamiento", required = true)
             @PathVariable Long id,
-
             @Parameter(description = "Nuevo estado: ACTIVO, INACTIVO", required = true)
-            @RequestParam String estado,
-
+            @RequestParam String estado, // Recibimos como String
             @Parameter(description = "Motivo del cambio de estado")
             @RequestParam(required = false) String motivo
     ) {
-        Map<String, Object> alojamiento = new HashMap<>();
-        alojamiento.put("id", id);
-        alojamiento.put("titulo", "Casa Campestre La Calera");
-        alojamiento.put("estadoAnterior", "ACTIVO");
-        alojamiento.put("nuevoEstado", estado);
-        alojamiento.put("fechaCambio", java.time.LocalDateTime.now().toString());
-        alojamiento.put("motivo", motivo != null ? motivo : "No especificado");
-
         Map<String, Object> response = new HashMap<>();
-        response.put("message", "Estado actualizado exitosamente");
-        response.put("alojamiento", alojamiento);
+        try {
+            // Convertir el String del estado a Enum (manejo de error si no es válido)
+            EstadoAlojamiento nuevoEstadoEnum;
+            try {
+                nuevoEstadoEnum = EstadoAlojamiento.valueOf(estado.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                response.put("error", "El estado proporcionado ('" + estado + "') no es válido. Use ACTIVO o INACTIVO.");
+                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST); // 400
+            }
 
-        if ("INACTIVO".equals(estado)) {
-            response.put("efectos", List.of(
-                    "El alojamiento no aparecerá en búsquedas",
-                    "No se pueden crear nuevas reservas",
-                    "Las reservas existentes se mantienen"
-            ));
+            // --- ¡Importante! Extraer el ID del anfitrión del token ---
+            // Esto sigue pendiente hasta que se configure Spring Security.
+            // Por ahora, usamos el ID fijo para que compile y funcione como los otros métodos.
+            Long anfitrionId = 1L;
+
+            // Llamar al servicio real
+            AlojamientoDTO alojamientoActualizado = alojamientoService.cambiarEstadoAlojamiento(id, nuevoEstadoEnum, anfitrionId);
+
+            // Construir la respuesta (puedes hacerla más detallada si quieres)
+            response.put("message", "Estado actualizado exitosamente");
+            // Devolvemos el DTO completo actualizado
+            response.put("alojamiento", alojamientoActualizado);
+            // Podrías añadir lógica para los "efectos" si es necesario
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            // Manejo de errores específicos del servicio
+            if (e.getMessage().contains("No tienes permiso")) {
+                response.put("error", e.getMessage());
+                return new ResponseEntity<>(response, HttpStatus.FORBIDDEN); // 403
+            }
+            if (e.getMessage().contains("Alojamiento no encontrado")) {
+                response.put("error", e.getMessage());
+                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND); // 404
+            }
+            if (e.getMessage().contains("reservas futuras activas")) {
+                response.put("error", e.getMessage());
+                return new ResponseEntity<>(response, HttpStatus.CONFLICT); // 409
+            }
+            // Error genérico
+            response.put("error", "Ocurrió un error inesperado: " + e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR); // 500
         }
-
-        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{alojamientoId}")
