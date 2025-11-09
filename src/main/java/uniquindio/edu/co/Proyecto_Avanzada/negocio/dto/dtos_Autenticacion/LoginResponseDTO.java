@@ -1,5 +1,6 @@
 package uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Autenticacion;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,5 +25,6 @@ public class LoginResponseDTO {
     private Integer expira;
 
     @Schema(description = "Información del usuario autenticado")
+    @JsonProperty("user")
     private UsuarioDTO usuario;
 }

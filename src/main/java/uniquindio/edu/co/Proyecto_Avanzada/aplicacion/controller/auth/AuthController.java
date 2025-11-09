@@ -1,111 +1,102 @@
 package uniquindio.edu.co.Proyecto_Avanzada.aplicacion.controller.auth;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Usuario.UsuarioCreateDTO;
-import uniquindio.edu.co.Proyecto_Avanzada.negocio.service.UsuarioService;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Autenticacion.LoginRequestDTO;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Autenticacion.LoginResponseDTO;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Usuario.UsuarioCreateDTO;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Usuario.UsuarioDTO;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.service.auth.AuthService;
+
 import java.util.HashMap;
 import java.util.Map;
-import jakarta.validation.Valid;
 
+/**
+ * Controlador REST para autenticación (Login y Registro)
+ */
 @RestController
 @RequestMapping("/api/auth")
-@Tag(name = "Autenticación", description = "Registro, login y recuperación de contraseña")
+@RequiredArgsConstructor
+@Tag(name = "Autenticación", description = "Endpoints para login y registro de usuarios")
 public class AuthController {
 
-    @Autowired
-    private UsuarioService usuarioService; // ¡Inyectamos nuestro nuevo servicio!
+    private final AuthService authService;
 
-    @PostMapping("/registro")
-    @Operation(summary = "Registrar nuevo usuario", description = "HU-V003: Registro de usuario en el sistema")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Usuario registrado exitosamente"), // Éxito
-            @ApiResponse(responseCode = "409", description = "Conflicto: El email ya está registrado"), // Email duplicado
-            @ApiResponse(responseCode = "400", description = "Solicitud inválida: Datos incompletos o formato incorrecto (ej. contraseña débil, email inválido)") // Error de validación
-    })
-    public ResponseEntity<Map<String, Object>> registro(
-            @Valid @RequestBody UsuarioCreateDTO usuarioCreateDTO
-    ) {
-        Map<String, Object> response = new HashMap<>();
-        try {
-            var usuarioRegistrado = usuarioService.registrarUsuario(usuarioCreateDTO);
-            response.put("message", "Usuario registrado exitosamente");
-            response.put("usuario", usuarioRegistrado);
-            return new ResponseEntity<>(response, HttpStatus.CREATED);
-        } catch (Exception e) {
-            response.put("error", e.getMessage());
-            if (e instanceof org.springframework.web.bind.MethodArgumentNotValidException) {
-                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-            }
-            return new ResponseEntity<>(response, HttpStatus.CONFLICT);
-        }
-    }
-
+    /**
+     * Endpoint de Login
+     */
     @PostMapping("/login")
-    @Operation(summary = "Iniciar sesión", description = "HU-U001: Autenticación de usuario registrado")
+    @Operation(
+            summary = "Iniciar sesión",
+            description = "Autentica un usuario con email y contraseña, retornando un token JWT"
+    )
     @ApiResponses(value = {
-            // ... (ApiResponses existentes)
+            @ApiResponse(responseCode = "200", description = "Login exitoso"),
+            @ApiResponse(responseCode = "401", description = "Credenciales inválidas"),
+            @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos")
     })
-    public ResponseEntity<?> login(@RequestBody LoginRequestDTO loginRequestDTO) {
+    public ResponseEntity<?> login(@RequestBody LoginRequestDTO loginRequest) {
         Map<String, Object> response = new HashMap<>();
+
         try {
-            // 1. Llamamos a nuestro servicio de login
-            var loginResponse = usuarioService.login(loginRequestDTO);
-            return new ResponseEntity<>(loginResponse, HttpStatus.OK); // Código 200
+            // Llamar al servicio de autenticación
+            LoginResponseDTO loginResponse = authService.login(loginRequest);
+
+            return ResponseEntity.ok(loginResponse);
 
         } catch (Exception e) {
-            // 2. Si las credenciales son inválidas, devolvemos un error
-            response.put("error", e.getMessage());
-            return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED); // Código 401
+            response.put("error", "Credenciales inválidas");
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(401).body(response);
         }
     }
 
-    @PostMapping("/recovery")
-    @Operation(summary = "Solicitar recuperación de contraseña",
-            description = "HU-U002: Envía código de 6 dígitos al email con validez de 15 minutos")
+    /**
+     * Endpoint de Registro
+     */
+    @PostMapping("/register")
+    @Operation(
+            summary = "Registrar nuevo usuario",
+            description = "Crea una nueva cuenta de usuario en el sistema"
+    )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Código enviado exitosamente"),
-            @ApiResponse(responseCode = "404", description = "Email no encontrado"),
-            @ApiResponse(responseCode = "429", description = "Demasiados intentos, espera antes de solicitar otro código")
+            @ApiResponse(responseCode = "201", description = "Usuario registrado exitosamente"),
+            @ApiResponse(responseCode = "400", description = "Datos inválidos o email ya existe"),
+            @ApiResponse(responseCode = "500", description = "Error interno del servidor")
     })
-    public ResponseEntity<Map<String, String>> recovery(
-            @Parameter(description = "Email del usuario registrado", required = true, example = "juan.perez@email.com")
-            @RequestParam String email
-    ) {
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Código de recuperación enviado al email");
-        response.put("expira", "15 minutos");
-        response.put("instrucciones", "Revisa tu bandeja de entrada y spam");
+    public ResponseEntity<?> register(@RequestBody UsuarioCreateDTO usuarioCreateDTO) {
+        Map<String, Object> response = new HashMap<>();
 
-        return ResponseEntity.ok(response);
+        try {
+            // Registrar el usuario
+            UsuarioDTO nuevoUsuario = authService.register(usuarioCreateDTO);
+
+            response.put("message", "Usuario registrado exitosamente");
+            response.put("usuario", nuevoUsuario);
+
+            return ResponseEntity.status(201).body(response);
+
+        } catch (Exception e) {
+            response.put("error", "Error al registrar usuario");
+            response.put("message", e.getMessage());
+            return ResponseEntity.status(400).body(response);
+        }
     }
 
-    @PostMapping("/recovery/verificar")
-    @Operation(summary = "Verificar código y cambiar contraseña",
-            description = "HU-U002: Valida código de 6 dígitos y establece nueva contraseña")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Contraseña actualizada exitosamente"),
-            @ApiResponse(responseCode = "400", description = "Código inválido o expirado"),
-            @ApiResponse(responseCode = "422", description = "Nueva contraseña no cumple requisitos de seguridad")
-    })
-    public ResponseEntity<Map<String, String>> verificarCodigo(
-            @Parameter(description = "Email del usuario") @RequestParam String email,
-            @Parameter(description = "Código de 6 dígitos recibido por email") @RequestParam String codigo,
-            @Parameter(description = "Nueva contraseña que cumple requisitos de seguridad") @RequestParam String nuevaPassword
-    ) {
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Contraseña actualizada exitosamente");
-        response.put("email", email);
-        response.put("fechaCambio", java.time.LocalDateTime.now().toString());
-
+    /**
+     * Endpoint para verificar si el token es válido (OPCIONAL)
+     */
+    @GetMapping("/validate")
+    @Operation(summary = "Validar token JWT", description = "Verifica si el token JWT es válido")
+    public ResponseEntity<?> validateToken() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("valid", true);
+        response.put("message", "Token válido");
         return ResponseEntity.ok(response);
     }
 }

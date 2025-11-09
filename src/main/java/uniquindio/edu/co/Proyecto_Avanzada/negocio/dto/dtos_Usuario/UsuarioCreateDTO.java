@@ -61,4 +61,8 @@ public class UsuarioCreateDTO {
     @JsonFormat(pattern = "yyyy-MM-dd")
     @Schema(description = "Fecha de nacimiento", example = "1990-05-15")
     private LocalDate fechaNacimiento;
+
+    // Rol como String
+    // Valores esperados: "USUARIO", "ANFITRION", "ADMINISTRADOR"
+    private String rol;  // Por defecto será "USUARIO"
 }
