@@ -14,7 +14,9 @@ import java.util.Optional;
 public interface RolRepository extends JpaRepository<RolEntity, Long> {
 
     /**
-     * Buscar rol por nombre
+     * Busca un rol por su nombre
+     * @param nombreRol Nombre del rol (ej: "USUARIO", "ANFITRION", "ADMINISTRADOR")
+     * @return Optional con el rol si existe
      */
     Optional<RolEntity> findByNombreRol(String nombreRol);
 
@@ -24,7 +26,9 @@ public interface RolRepository extends JpaRepository<RolEntity, Long> {
     List<RolEntity> findByEsActivoTrue();
 
     /**
-     * Verificar si existe rol por nombre
+     * Verifica si existe un rol con el nombre dado
+     * @param nombreRol Nombre del rol
+     * @return true si existe, false si no
      */
     boolean existsByNombreRol(String nombreRol);
 }

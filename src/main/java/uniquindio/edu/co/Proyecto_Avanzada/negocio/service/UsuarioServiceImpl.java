@@ -3,9 +3,11 @@
 package uniquindio.edu.co.Proyecto_Avanzada.negocio.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Usuario.UsuarioCreateDTO;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Usuario.UsuarioDTO;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.service.auth.AuthService;
 import uniquindio.edu.co.Proyecto_Avanzada.persistencia.entity.UsuarioEntity;
 import uniquindio.edu.co.Proyecto_Avanzada.persistencia.repository.UsuarioRepository;
 import uniquindio.edu.co.Proyecto_Avanzada.persistencia.mapper.UsuarioMapper;
@@ -28,8 +30,9 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Autowired
     private UsuarioMapper usuarioMapper; // Nuestro convertidor
 
-    // NOTA: Deberíamos inyectar un PasswordEncoder para seguridad real
-    // private final PasswordEncoder passwordEncoder;
+    @Autowired
+    private PasswordEncoder passwordEncoder;  // Añadir esta inyección
+
 
     @Override
     public UsuarioDTO registrarUsuario(UsuarioCreateDTO usuarioCreateDTO) throws Exception {
@@ -48,8 +51,8 @@ public class UsuarioServiceImpl implements UsuarioService {
         nuevoUsuario.setRol(rolUsuario);
 
         // 4. (IMPORTANTE) En un proyecto real, aquí deberíamos encriptar la contraseña
-        // String passwordEncriptada = passwordEncoder.encode(usuarioCreateDTO.getPassword());
-        // nuevoUsuario.setContraseniaHash(passwordEncriptada);
+        String passwordEncriptada = passwordEncoder.encode(usuarioCreateDTO.getPassword());
+        nuevoUsuario.setContraseniaHash(passwordEncriptada);
         // Por ahora, la guardamos como texto plano como en el DTO.
 
         // 5. Guardar el nuevo usuario en la base de datos usando el repositorio
@@ -59,38 +62,14 @@ public class UsuarioServiceImpl implements UsuarioService {
         return usuarioMapper.toDTO(usuarioGuardado);
     }
 
+    // Inyectar AuthService
+    @Autowired
+    private AuthService authService;
+
     @Override
     public LoginResponseDTO login(LoginRequestDTO loginRequestDTO) throws Exception {
-        // 1. Buscar al usuario por su email en la base de datos
-        UsuarioEntity usuario = usuarioRepository.findByEmail(loginRequestDTO.getEmail())
-                .orElseThrow(() -> new Exception("El correo o la contraseña son incorrectos."));
-
-        // 2. (IMPORTANTE) Validar la contraseña
-        // En un proyecto real, la contraseña de la BD está encriptada.
-        // Se usaría un PasswordEncoder para compararlas:
-        // if (!passwordEncoder.matches(loginRequestDTO.getPassword(), usuario.getContraseniaHash())) {
-        //     throw new Exception("El correo o la contraseña son incorrectos.");
-        // }
-        // Para este avance, haremos una comparación simple de texto:
-        if (!loginRequestDTO.getPassword().equals(usuario.getContraseniaHash())) {
-            throw new Exception("El correo o la contraseña son incorrectos.");
-        }
-
-        // 3. (IMPORTANTE) Generar un Token JWT (JSON Web Token)
-        // La generación del token es un proceso más complejo que requiere una librería y configuración.
-        // Para este avance, simularemos un token. Más adelante lo podrás reemplazar.
-        String token = "TOKEN_JWT_SIMULADO_PARA_" + usuario.getEmail();
-
-        // 4. Convertir la entidad del usuario a un DTO para la respuesta
-        UsuarioDTO usuarioDTO = usuarioMapper.toDTO(usuario);
-
-        // 5. Construir y devolver la respuesta de login
-        return LoginResponseDTO.builder()
-                .token(token)
-                .tipo("Bearer")
-                .expira(3600) // 1 hora de validez (en segundos)
-                .usuario(usuarioDTO)
-                .build();
+        // Delegar la autenticación al AuthService que usa JWT real
+        return authService.login(loginRequestDTO);
     }
 
     @Override
