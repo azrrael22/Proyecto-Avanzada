@@ -41,8 +41,8 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    // OpenAPI/Swagger
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+    // Documentación OpenAPI
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.12")
 
     // MapStruct para mapeo automático
     implementation 'org.mapstruct:mapstruct:1.6.3'

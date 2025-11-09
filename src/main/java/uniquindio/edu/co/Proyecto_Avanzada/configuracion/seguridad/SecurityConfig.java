@@ -52,7 +52,6 @@ public class SecurityConfig {
                                 "/webjars/**",
 
                                 // Otros públicos
-                                "/error",
                                 "/favicon.ico"
                         ).permitAll()
                         
