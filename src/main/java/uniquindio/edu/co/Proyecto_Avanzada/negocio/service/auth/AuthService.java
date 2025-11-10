@@ -17,6 +17,9 @@ import uniquindio.edu.co.Proyecto_Avanzada.persistencia.mapper.UsuarioMapper;
 import uniquindio.edu.co.Proyecto_Avanzada.persistencia.repository.RolRepository;
 import uniquindio.edu.co.Proyecto_Avanzada.persistencia.repository.UsuarioRepository;
 
+import java.time.LocalDate;
+import java.time.Period;
+
 /**
  * Servicio de autenticación con JWT real
  * ADAPTADO PARA: Roles guardados en tabla (no enum)
@@ -32,7 +35,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
-
+    //private final ImageStorageService imageStorageService;
     /**
      * Login de usuario con JWT real
      */
@@ -54,7 +57,7 @@ public class AuthService {
         UsuarioEntity usuario = usuarioRepository.findByEmail(loginRequest.getEmail())
                 .orElseThrow(() -> new Exception("Usuario no encontrado"));
 
-        // 3. 🔥 CAMBIO: Extraer el nombre del rol desde RolEntity
+        // 3. Extraer el nombre del rol desde RolEntity
         String nombreRol = usuario.getRol() != null
                 ? usuario.getRol().getNombreRol()
                 : "USUARIO";  // Rol por defecto
@@ -88,18 +91,40 @@ public class AuthService {
             throw new Exception("El email ya está registrado");
         }
 
-        // 2. Crear la nueva entidad de usuario
+        // 2. Validar edad mínima (18 años)
+        int edad = Period.between(usuarioCreateDTO.getFechaNacimiento(), LocalDate.now()).getYears();
+        if (edad < 18) {
+            throw new Exception("Debes ser mayor de 18 años para registrarte");
+        }
+
+        // 3. Crear la nueva entidad de usuario
         UsuarioEntity nuevoUsuario = new UsuarioEntity();
         nuevoUsuario.setEmail(usuarioCreateDTO.getEmail());
         nuevoUsuario.setNombre(usuarioCreateDTO.getNombre());
-        //nuevoUsuario.setApellido(usuarioCreateDTO.getApellido());
+        nuevoUsuario.setApellido(usuarioCreateDTO.getApellido());
         nuevoUsuario.setTelefono(usuarioCreateDTO.getTelefono());
+        nuevoUsuario.setFechaNacimiento(usuarioCreateDTO.getFechaNacimiento());
 
-        // 3. Encriptar la contraseña con BCrypt
+        // 4. Procesar foto de perfil si existe
+        if (usuarioCreateDTO.getFotoPerfil() != null && !usuarioCreateDTO.getFotoPerfil().isEmpty()) {
+            try {
+                // Opción A: Guardar el Base64 directamente en la BD
+                nuevoUsuario.setFotoPerfil(usuarioCreateDTO.getFotoPerfil());
+
+                // Opción B: Guardar la imagen en el filesystem o cloud y guardar solo la URL
+                // String imageUrl = imageStorageService.saveImage(usuarioCreateDTO.getFotoPerfil());
+                // nuevoUsuario.setFotoPerfil(imageUrl);
+            } catch (Exception e) {
+                // Si falla la imagen, continuar sin ella (es opcional)
+                System.err.println("Error al procesar la imagen: " + e.getMessage());
+            }
+        }
+
+        // 5. Encriptar la contraseña con BCrypt
         String passwordEncriptada = passwordEncoder.encode(usuarioCreateDTO.getPassword());
         nuevoUsuario.setContraseniaHash(passwordEncriptada);
 
-        // 4. Buscar el rol en la base de datos
+        // 6. Buscar el rol en la base de datos
         String nombreRolSolicitado = (usuarioCreateDTO.getRol() != null)
                 ? usuarioCreateDTO.getRol()
                 : "USUARIO";  // Por defecto USUARIO
@@ -112,10 +137,10 @@ public class AuthService {
 
         nuevoUsuario.setRol(rolEntity);
 
-        // 5. Guardar el usuario en la base de datos
+        // 7. Guardar el usuario en la base de datos
         UsuarioEntity usuarioGuardado = usuarioRepository.save(nuevoUsuario);
 
-        // 6. Convertir a DTO y retornar
+        // 8. Convertir a DTO y retornar
         return usuarioMapper.toDTO(usuarioGuardado);
     }
 }

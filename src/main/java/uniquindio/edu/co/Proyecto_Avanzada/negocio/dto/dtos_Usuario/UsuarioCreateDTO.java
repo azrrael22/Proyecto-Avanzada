@@ -39,6 +39,10 @@ public class UsuarioCreateDTO {
             Schema.RequiredMode.REQUIRED, maxLength = 100)
     private String nombre;
 
+    @NotBlank(message = "El apellido es requerido")
+    @Size(min = 2, max = 50, message = "El apellido debe tener entre 2 y 50 caracteres")
+    private String apellido;
+
     @NotBlank(message = "El email es obligatorio")
     @Email(message = "Formato de email inválido")
     @Size(max = 150, message = "El email no puede exceder 150 caracteres")
@@ -57,10 +61,13 @@ public class UsuarioCreateDTO {
     @Schema(description = "Número de teléfono", example = "+57300123456", maxLength = 20)
     private String telefono;
 
+    @NotNull(message = "La fecha de nacimiento es requerida")
     @Past(message = "La fecha de nacimiento debe ser anterior a hoy")
     @JsonFormat(pattern = "yyyy-MM-dd")
     @Schema(description = "Fecha de nacimiento", example = "1990-05-15")
     private LocalDate fechaNacimiento;
+
+    private String fotoPerfil;
 
     // Rol como String
     // Valores esperados: "USUARIO", "ANFITRION", "ADMINISTRADOR"

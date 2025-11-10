@@ -23,7 +23,7 @@ public class CorsConfig {
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:4200",      // Desarrollo Angular
                 "http://127.0.0.1:4200"       // Alternativa localhost
-                // Añade aquí la URL de producción cuando despliegues
+                // Añadir aquí la URL de producción cuando se despliegue
                 // "https://tu-dominio.com"
         ));
         
