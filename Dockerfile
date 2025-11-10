@@ -28,7 +28,7 @@ COPY --from=build /app/build/libs/*.jar app.jar
 EXPOSE 8099
 
 # Variables de entorno por defecto (se pueden sobrescribir)
-ENV SPRING_PROFILES_ACTIVE=prod
+ENV SPRING_PROFILES_ACTIVE=dev
 ENV JAVA_OPTS="-Xmx512m -Xms256m"
 
 # Comando de inicio
