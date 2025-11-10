@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  # Base de datos MySQL
+  mysql:
+    image: mysql:8.4.6
+    container_name: mysql-alojamientos
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: A-12345-RR
+      MYSQL_DATABASE: gestion_alojamientos
+      MYSQL_CHARACTER_SET_SERVER: utf8mb4
+      MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+        # Scripts SQL de inicialización desde la carpeta infraestructura
+      - ./src/main/java/uniquindio/edu/co/Proyecto_Avanzada/infraestructura:/docker-entrypoint-initdb.d
+    networks:
+      - alojamientos-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pA-12345-RR"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend Spring Boot
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: backend-alojamientos
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      # Spring Profile
+      SPRING_PROFILES_ACTIVE: dev
+      
+      # Configuración de base de datos
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/gestion_alojamientos?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: A-12345-RR
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+      
+      # JPA/Hibernate
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: false
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQLDialect
+      
+      # Puerto del servidor
+      SERVER_PORT: 8080
+      
+      # JWT (ajusta según tu configuración)
+      # JWT_SECRET: tu-secret-key-aqui
+      # JWT_EXPIRATION: 86400000
+      
+    ports:
+      - "8080:8080"
+    networks:
+      - alojamientos-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8099/alojamiento/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  alojamientos-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
