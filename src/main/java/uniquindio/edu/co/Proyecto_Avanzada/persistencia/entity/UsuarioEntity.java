@@ -30,6 +30,16 @@ public class UsuarioEntity {
     @Column(nullable = false, length = 100)
     private String nombre;
 
+    @Column(nullable = false, length = 100)
+    private String apellido;
+
+    @Column(name = "fecha_nacimiento", nullable = false)
+    private LocalDate fechaNacimiento;
+
+    //path de la foto de perfil
+    @Column(name = "foto_perfil", columnDefinition = "TEXT")
+    private String fotoPerfil;
+
     @Column(nullable = false, unique = true, length = 150)
     private String email;
 
@@ -38,13 +48,7 @@ public class UsuarioEntity {
 
     @Column(length = 20)
     private String telefono;
-
-    @Column(name = "fecha_nacimiento")
-    private LocalDate fechaNacimiento;
-
-    @Column(name = "foto_perfil", length = 500)
-    private String fotoPerfil;
-
+    
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
@@ -60,6 +64,12 @@ public class UsuarioEntity {
 
     @Column(name = "fecha_ultima_actualizacion")
     private LocalDateTime fechaUltimaActualizacion;
+
+    // Metodo helper para calcular la edad
+    public int getEdad() {
+        if (fechaNacimiento == null) return 0;
+        return LocalDate.now().getYear() - fechaNacimiento.getYear();
+    }
 
     // Relaciones One-to-Many
     @ToString.Exclude
