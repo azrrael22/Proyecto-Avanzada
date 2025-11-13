@@ -2,6 +2,7 @@ package uniquindio.edu.co.Proyecto_Avanzada.persistencia.repository;
 
 import uniquindio.edu.co.Proyecto_Avanzada.persistencia.entity.ReservaEntity;
 import uniquindio.edu.co.Proyecto_Avanzada.negocio.enums.EstadoReserva;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.enums.EstadoReserva;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -339,4 +340,12 @@ public interface ReservaRepository extends JpaRepository<ReservaEntity, Long> {
     List<Object[]> findTopGuestsByAnfitrion(@Param("anfitrionId") Long anfitrionId);
 
     long countByAlojamiento_Anfitrion_Id(Long anfitrionId);
+
+    /**
+     * Cuenta reservas por estado
+     * @param estado Estado de la reserva
+     * @return Cantidad de reservas
+     */
+    Long countByEstado(EstadoReserva estado);
+
 }

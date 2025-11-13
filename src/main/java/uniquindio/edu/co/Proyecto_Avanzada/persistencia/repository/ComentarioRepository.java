@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import java.util.Optional;
 
 import java.util.List;
 
@@ -59,8 +60,10 @@ public interface ComentarioRepository extends JpaRepository<ComentarioEntity, Lo
     /**
      * Calcular calificación promedio de un alojamiento
      */
+    /*
     @Query("SELECT AVG(c.calificacion) FROM ComentarioEntity c WHERE c.alojamiento.id = :alojamientoId")
     Double findAverageCalificacionByAlojamientoId(@Param("alojamientoId") Long alojamientoId);
+    */
 
     /**
      * Contar comentarios por alojamiento
@@ -89,4 +92,12 @@ public interface ComentarioRepository extends JpaRepository<ComentarioEntity, Lo
 
     @Query("SELECT AVG(c.calificacion) FROM ComentarioEntity c WHERE c.alojamiento.anfitrion.id = :anfitrionId")
     Double findAverageCalificacionByAnfitrionId(@Param("anfitrionId") Long anfitrionId);
+
+    /**
+     * Calcula el promedio de calificación para un alojamiento
+     * @param alojamientoId ID del alojamiento
+     * @return Promedio de calificación (opcional)
+     */
+    @Query("SELECT AVG(c.calificacion) FROM ComentarioEntity c WHERE c.alojamiento.id = :alojamientoId")
+    Optional<Double> findAverageCalificacionByAlojamientoId(@Param("alojamientoId") Long alojamientoId);
 }

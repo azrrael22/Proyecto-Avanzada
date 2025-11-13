@@ -36,43 +36,22 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Deshabilitar CSRF (no necesario para APIs REST con JWT)
-                .csrf(AbstractHttpConfigurer::disable)
-                
-                // Configurar autorización de peticiones
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // Endpoints públicos (sin autenticación)
-                        .requestMatchers(
-                                "/api/auth/**",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/v3/api-docs/**",
-                                "/swagger-resources/**",
-                                "/configuration/**",
-                                "/webjars/**",
+                        // ========== ENDPOINTS PÚBLICOS (NO REQUIEREN AUTENTICACIÓN) ==========
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/public/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
 
-                                // Otros públicos
-                                "/favicon.ico"
-                        ).permitAll()
-                        
-                        // Endpoints específicos por rol
-                        //.requestMatchers("/api/admin/**").hasRole("ADMINISTRADOR")
-                        //.requestMatchers("/api/anfitrion/**").hasAnyRole("ANFITRION", "ADMINISTRADOR")
-                        //.requestMatchers("/api/usuario/**").hasAnyRole("USUARIO", "ANFITRION", "ADMINISTRADOR")
-                        
-                        // Cualquier otra petición requiere autenticación
+                        // ========== ENDPOINTS PROTEGIDOS ==========
+                        .requestMatchers("/api/usuario/**").hasAnyRole("USUARIO", "ANFITRION", "ADMINISTRADOR")
+                        .requestMatchers("/api/anfitrion/**").hasRole("ANFITRION")
+                        .requestMatchers("/api/admin/**").hasRole("ADMINISTRADOR")
                         .anyRequest().authenticated()
                 )
-                
-                // Política de sesiones: STATELESS (sin sesiones, solo JWT)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                
-                // Configurar el proveedor de autenticación
-                .authenticationProvider(authenticationProvider())
-                
-                // Añadir el filtro JWT antes del filtro de autenticación estándar
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
