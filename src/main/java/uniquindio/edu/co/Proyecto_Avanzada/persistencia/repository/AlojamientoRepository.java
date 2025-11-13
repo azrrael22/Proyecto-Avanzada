@@ -17,6 +17,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Public.CityDTO;
+import uniquindio.edu.co.Proyecto_Avanzada.negocio.enums.EstadoAlojamiento;
+
 
 /**
  * Repositorio para operaciones de base de datos con alojamientos
@@ -98,7 +103,8 @@ public interface AlojamientoRepository extends JpaRepository<AlojamientoEntity, 
     /**
      * Contar alojamientos por estado
      */
-    long countByEstado(EstadoAlojamiento estado);
+
+    //long countByEstado(EstadoAlojamiento estado);
 
     /**
      * Calcular calificación promedio de un alojamiento
@@ -155,4 +161,56 @@ public interface AlojamientoRepository extends JpaRepository<AlojamientoEntity, 
      * @return
      */
     long countByAnfitrion_IdAndEstadoNot(Long anfitrionId, EstadoAlojamiento estado);
+
+    /**
+     * Encuentra los 6 alojamientos activos mejor calificados
+     * @param estado Estado del alojamiento
+     * @param pageable Configuración de paginación
+     * @return Lista de alojamientos ordenados por calificación
+     */
+    @Query("""
+        SELECT a FROM AlojamientoEntity a 
+        WHERE a.estado = :estado 
+        ORDER BY (
+            SELECT COALESCE(AVG(c.calificacion), 0) 
+            FROM ComentarioEntity c 
+            WHERE c.alojamiento.id = a.id
+        ) DESC, a.fechaCreacion DESC
+    """)
+    List<AlojamientoEntity> findTop6ByEstadoOrderByCalificacionPromedioDesc(
+            EstadoAlojamiento estado,
+            Pageable pageable
+    );
+
+    /**
+     * Cuenta alojamientos por estado
+     * @param estado Estado del alojamiento
+     * @return Cantidad de alojamientos
+     */
+    Long countByEstado(EstadoAlojamiento estado);
+
+    /**
+     * Cuenta ciudades distintas con alojamientos activos
+     * @param estado Estado del alojamiento
+     * @return Cantidad de ciudades
+     */
+    @Query("SELECT COUNT(DISTINCT a.ciudad) FROM AlojamientoEntity a WHERE a.estado = :estado")
+    Long countDistinctCiudadesByEstado(EstadoAlojamiento estado);
+
+    /**
+     * Obtiene lista de ciudades con cantidad de alojamientos
+     * @return Lista de DTOs con ciudad y cantidad
+     */
+    @Query("""
+        SELECT new uniquindio.edu.co.Proyecto_Avanzada.negocio.dto.dtos_Public.CityDTO(
+            a.ciudad, 
+            COUNT(a)
+        ) 
+        FROM AlojamientoEntity a 
+        WHERE a.estado = 'ACTIVO' 
+        GROUP BY a.ciudad 
+        ORDER BY COUNT(a) DESC
+    """)
+    List<CityDTO> findCiudadesWithActiveAccommodations();
+
 }
