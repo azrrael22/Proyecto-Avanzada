@@ -7,10 +7,11 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collections;
 
 /**
  * Configuración de CORS para permitir peticiones desde el frontend Angular
+ * IMPORTANTE: Esta configuración se integra con Spring Security
  */
 @Configuration
 public class CorsConfig {
@@ -18,48 +19,43 @@ public class CorsConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        
-        // Orígenes permitidos (frontend Angular)
-        configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:4200",      // Desarrollo Angular
-                "http://127.0.0.1:4200"       // Alternativa localhost
-                // Añadir aquí la URL de producción cuando se despliegue
-                // "https://tu-dominio.com"
-        ));
-        
-        // Métodos HTTP permitidos
+
+        // ========== ORÍGENES PERMITIDOS ==========
+        configuration.setAllowedOriginPatterns(Collections.singletonList("*")); // Acepta cualquier origen en desarrollo
+        // Para producción, usar orígenes específicos:
+        // configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200", "https://tu-dominio.com"));
+
+        // ========== MÉTODOS HTTP PERMITIDOS ==========
         configuration.setAllowedMethods(Arrays.asList(
-                "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"
+                "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"
         ));
-        
-        // Headers permitidos
-        configuration.setAllowedHeaders(Arrays.asList(
+
+        // ========== HEADERS PERMITIDOS ==========
+        configuration.setAllowedHeaders(Arrays.asList("*")); // Permite todos los headers
+
+        // ========== HEADERS EXPUESTOS ==========
+        configuration.setExposedHeaders(Arrays.asList(
                 "Authorization",
                 "Content-Type",
                 "X-Requested-With",
                 "Accept",
                 "Origin",
                 "Access-Control-Request-Method",
-                "Access-Control-Request-Headers"
-        ));
-        
-        // Headers expuestos (que el cliente puede leer)
-        configuration.setExposedHeaders(Arrays.asList(
-                "Authorization",
+                "Access-Control-Request-Headers",
                 "Access-Control-Allow-Origin",
                 "Access-Control-Allow-Credentials"
         ));
-        
-        // Permitir credenciales (cookies, authorization headers)
+
+        // ========== PERMITIR CREDENCIALES ==========
         configuration.setAllowCredentials(true);
-        
-        // Tiempo de cacheo de la configuración CORS (1 hora)
-        configuration.setMaxAge(3600L);
-        
-        // Aplicar esta configuración a todos los endpoints
+
+        // ========== TIEMPO DE CACHEO ==========
+        configuration.setMaxAge(3600L); // 1 hora
+
+        // ========== APLICAR A TODOS LOS ENDPOINTS ==========
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
-        
+
         return source;
     }
 }

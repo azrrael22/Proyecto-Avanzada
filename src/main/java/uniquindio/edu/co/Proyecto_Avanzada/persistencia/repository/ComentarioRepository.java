@@ -93,11 +93,11 @@ public interface ComentarioRepository extends JpaRepository<ComentarioEntity, Lo
     @Query("SELECT AVG(c.calificacion) FROM ComentarioEntity c WHERE c.alojamiento.anfitrion.id = :anfitrionId")
     Double findAverageCalificacionByAnfitrionId(@Param("anfitrionId") Long anfitrionId);
 
+
     /**
-     * Calcula el promedio de calificación para un alojamiento
-     * @param alojamientoId ID del alojamiento
-     * @return Promedio de calificación (opcional)
+     * MÉTODO CORREGIDO: Calcular calificación promedio de un alojamiento
+     * IMPORTANTE: Retorna Optional<Double> para manejar casos sin comentarios
      */
-    @Query("SELECT AVG(c.calificacion) FROM ComentarioEntity c WHERE c.alojamiento.id = :alojamientoId")
+    @Query("SELECT AVG(CAST(c.calificacion AS double)) FROM ComentarioEntity c WHERE c.alojamiento.id = :alojamientoId")
     Optional<Double> findAverageCalificacionByAlojamientoId(@Param("alojamientoId") Long alojamientoId);
 }

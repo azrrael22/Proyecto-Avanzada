@@ -3,6 +3,7 @@ package uniquindio.edu.co.Proyecto_Avanzada.configuracion.seguridad;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -17,9 +18,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 /**
- * Configuración de seguridad de Spring Security con JWT
+ * Configuración de seguridad de Spring Security con JWT y CORS
  */
 @Configuration
 @EnableWebSecurity
@@ -29,6 +31,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailsService userDetailsService;
+    private final CorsConfigurationSource corsConfigurationSource;
 
     /**
      * Configuración de la cadena de filtros de seguridad
@@ -36,29 +39,49 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
+                // ========== HABILITAR CORS ==========
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
+
+                // ========== DESHABILITAR CSRF ==========
+                .csrf(AbstractHttpConfigurer::disable)
+
+                // ========== CONFIGURACIÓN DE AUTORIZACIÓN ==========
                 .authorizeHttpRequests(auth -> auth
-                        // ========== ENDPOINTS PÚBLICOS (NO REQUIEREN AUTENTICACIÓN) ==========
+                        // ========== PERMITIR TODAS LAS PETICIONES OPTIONS (PREFLIGHT) ==========
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // ========== ENDPOINTS PÚBLICOS ==========
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-ui.html").permitAll()
+                        .requestMatchers("/api-docs/**").permitAll()
 
-                        // ========== ENDPOINTS PROTEGIDOS ==========
+                        // ========== ENDPOINTS PROTEGIDOS POR ROL ==========
                         .requestMatchers("/api/usuario/**").hasAnyRole("USUARIO", "ANFITRION", "ADMINISTRADOR")
-                        .requestMatchers("/api/anfitrion/**").hasRole("ANFITRION")
-                        .requestMatchers("/api/admin/**").hasRole("ADMINISTRADOR")
+                        .requestMatchers("/api/anfitrion/**").hasAnyRole("ANFITRION", "ADMINISTRADOR")
+                        .requestMatchers("/api/administrador/**").hasRole("ADMINISTRADOR")
+
+                        // ========== CUALQUIER OTRA PETICIÓN REQUIERE AUTENTICACIÓN ==========
                         .anyRequest().authenticated()
                 )
+
+                // ========== GESTIÓN DE SESIONES (STATELESS PARA JWT) ==========
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+
+                // ========== PROVEEDOR DE AUTENTICACIÓN ==========
+                .authenticationProvider(authenticationProvider())
+
+                // ========== FILTRO JWT ==========
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
     /**
-     * Configuración del proveedor de autenticación
+     * Proveedor de autenticación con UserDetailsService y PasswordEncoder
      */
     @Bean
     public AuthenticationProvider authenticationProvider() {
@@ -69,7 +92,7 @@ public class SecurityConfig {
     }
 
     /**
-     * Configuración del gestor de autenticación
+     * Gestor de autenticación
      */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
@@ -77,7 +100,7 @@ public class SecurityConfig {
     }
 
     /**
-     * Configuración del encriptador de contraseñas (BCrypt)
+     * Codificador de contraseñas BCrypt
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
